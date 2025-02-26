@@ -30,6 +30,8 @@ namespace NeoCardium
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
         /// </summary>
+        private MainWindow? _mainWindow;
+
         public App()
         {
             this.InitializeComponent();
@@ -41,10 +43,13 @@ namespace NeoCardium
         /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
-            m_window = new MainWindow();
-            m_window.Activate();
+            if (_mainWindow == null) // Verhindert doppeltes Erstellen
+            {
+                _mainWindow = new MainWindow();
+                _mainWindow.Activate();
+            }
         }
 
-        private Window? m_window;
+        
     }
 }
