@@ -5,7 +5,6 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
-using Windows.UI.ApplicationSettings;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -15,6 +14,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 
 using NeoCardium.Views;
+using Windows.UI.ApplicationSettings;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -42,6 +42,12 @@ namespace NeoCardium
                 {
                     case "MainPage":
                         ContentFrame.Navigate(typeof(MainPage));
+                        break;
+                    case "FlashcardPage":
+                        ContentFrame.Navigate(typeof(FlashcardPage));
+                        break;
+                    case "SettingsPage":
+                        ContentFrame.Navigate(typeof(SettingsPage));
                         break;
                 }
             }

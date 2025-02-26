@@ -8,11 +8,11 @@
   IgnorableNamespaces="uap rescap">
 
   <Identity
-    Name="1b4645f4-776a-470b-b07b-5d9dc5ed38b8"
+    Name="03d0fd0a-60c0-4143-8347-4a584d8b8790"
     Publisher="CN=Numbo"
     Version="1.0.0.0" />
 
-  <mp:PhoneIdentity PhoneProductId="1b4645f4-776a-470b-b07b-5d9dc5ed38b8" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="03d0fd0a-60c0-4143-8347-4a584d8b8790" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>NeoCardium</DisplayName>

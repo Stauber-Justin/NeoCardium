@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Page
-    x:Class="NeoCardium.Views.MainPage"
+    x:Class="NeoCardium.Views.FlashcardPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:NeoCardium.Views"
@@ -10,7 +10,7 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
-        <TextBlock Text="Willkommen bei NeoCardium!" 
+        <TextBlock Text="Lernmodus: Hier werden die Karteikarten angezeigt!" 
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    FontSize="24"
