@@ -49,6 +49,14 @@ namespace NeoCardium.Views
             CategoryListView.ItemsSource = Categories;
         }
 
+        private void CategoryListView_ItemClick(object sender, ItemClickEventArgs e)
+        {
+            if (e.ClickedItem is Category selectedCategory)
+            {
+                Frame.Navigate(typeof(FlashcardsPage), selectedCategory.Id);
+            }
+        }
+
         private void OpenContextMenu_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button button)

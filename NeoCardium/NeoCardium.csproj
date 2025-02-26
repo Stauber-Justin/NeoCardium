@@ -14,7 +14,9 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Views\CategoryDialog.xaml" />
+    <None Remove="Views\FlashcardDialog.xaml" />
     <None Remove="Views\FlashcardPage.xaml" />
+    <None Remove="Views\FlashcardsPage.xaml" />
     <None Remove="Views\MainPage.xaml" />
     <None Remove="Views\SettingsPage.xaml" />
   </ItemGroup>
@@ -50,6 +52,16 @@
     <Folder Include="Database\" />
     <Folder Include="Services\" />
     <Folder Include="ViewModels\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\FlashcardDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\FlashcardsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\CategoryDialog.xaml">

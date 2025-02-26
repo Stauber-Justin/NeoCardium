@@ -21,7 +21,10 @@
             <ListView x:Name="CategoryListView"
           SelectionMode="Single"
           ItemsSource="{x:Bind Categories, Mode=OneWay}"
-          Height="300">
+          Height="300"
+          IsItemClickEnabled="True"
+          ItemClick="CategoryListView_ItemClick">
+
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="models:Category">
                         <StackPanel Orientation="Horizontal">
