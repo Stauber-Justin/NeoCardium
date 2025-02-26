@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "NeoCardium (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "NeoCardium (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
