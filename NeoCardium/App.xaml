@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Application
-    x:Class="NeoCardium.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    
+    x:Class="NeoCardium.App"
     xmlns:local="using:NeoCardium">
+    
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
