@@ -14,8 +14,11 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
+using System.Diagnostics;
 using NeoCardium.Models;
 using NeoCardium.Database;
+using NeoCardium.Helpers;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -35,80 +38,130 @@ namespace NeoCardium.Views
         }
 
         // Wird aufgerufen, wenn eine Kategorie ausgewählt wird
-        private void LoadFlashcards(int categoryId)
-        {
-            Flashcards.Clear();
-            foreach (var flashcard in DatabaseHelper.GetFlashcardsByCategory(categoryId))
-            {
-                Flashcards.Add(flashcard);
-            }
-            FlashcardsListView.ItemsSource = Flashcards;
-        }
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             if (e.Parameter is int categoryId)
             {
                 _selectedCategoryId = categoryId;
-                LoadFlashcards(categoryId);
+                _=LoadFlashcards(categoryId); // `_ =` um Async-Warning zu vermeiden
             }
         }
 
+        private async Task LoadFlashcards(int categoryId)
+        {
+            try
+            {
+                Flashcards.Clear();
+                foreach (var flashcard in DatabaseHelper.GetFlashcardsByCategory(categoryId))
+                {
+                    Flashcards.Add(flashcard);
+                }
+                FlashcardsListView.ItemsSource = Flashcards;
+            }
+            catch (Exception ex)
+            {
+                await ExceptionHelper.ShowErrorDialogAsync("Fehler beim Laden der Karteikarten.", ex, this.XamlRoot);
+            }
+        }
+        
         private async void AddFlashcard_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new FlashcardDialog();
-            dialog.XamlRoot = this.XamlRoot;
-
-            var result = await dialog.ShowAsync();
-            if (result == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(dialog.Question) && dialog.Answers.Any())
+            try
             {
-                DatabaseHelper.AddFlashcard(_selectedCategoryId, dialog.Question, dialog.Answers.ToList());
-                LoadFlashcards(_selectedCategoryId);
+                var dialog = new FlashcardDialog();
+                dialog.XamlRoot = this.XamlRoot;
+
+                var result = await dialog.ShowAsync();
+                if (result == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(dialog.Question) && dialog.Answers.Any())
+                {
+                    bool success = DatabaseHelper.AddFlashcard(_selectedCategoryId, dialog.Question, dialog.Answers.ToList());
+
+                    if (!success)
+                    {
+                        await ExceptionHelper.ShowErrorDialogAsync("Karteikarte konnte nicht gespeichert werden.", null, this.XamlRoot);
+                        return;
+                    }
+
+                    await LoadFlashcards(_selectedCategoryId);
+                }
+            }
+            catch (Exception ex)
+            {
+                await ExceptionHelper.ShowErrorDialogAsync("Fehler beim Erstellen einer Karteikarte.", ex, this.XamlRoot);
             }
         }
 
         private async void EditFlashcard_Click(object sender, RoutedEventArgs e)
         {
-            if ((sender as Button)?.DataContext is Flashcard selectedFlashcard)
+            try
             {
-                var dialog = new FlashcardDialog();
-                dialog.Question = selectedFlashcard.Question;
-                dialog.XamlRoot = this.XamlRoot;
-
-                // Antworten aus DB abrufen und in den Dialog setzen
-                dialog.Answers.Clear();
-                foreach (var answer in DatabaseHelper.GetAnswersByFlashcard(selectedFlashcard.Id))
+                if ((sender as Button)?.DataContext is Flashcard selectedFlashcard)
                 {
-                    dialog.Answers.Add(answer);
-                }
+                    var dialog = new FlashcardDialog();
+                    dialog.Question = selectedFlashcard.Question;
+                    dialog.XamlRoot = this.XamlRoot;
 
-                var result = await dialog.ShowAsync();
-                if (result == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(dialog.Question) && dialog.Answers.Any())
-                {
-                    DatabaseHelper.UpdateFlashcard(selectedFlashcard.Id, dialog.Question, dialog.Answers.ToList());
-                    LoadFlashcards(_selectedCategoryId);
+                    // Antworten aus DB abrufen und in den Dialog setzen
+                    dialog.Answers.Clear();
+                    foreach (var answer in DatabaseHelper.GetAnswersByFlashcard(selectedFlashcard.Id))
+                    {
+                        dialog.Answers.Add(answer);
+                    }
+
+                    var result = await dialog.ShowAsync();
+                    if (result == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(dialog.Question) && dialog.Answers.Any())
+                    {
+                        bool success = DatabaseHelper.UpdateFlashcard(selectedFlashcard.Id, dialog.Question, dialog.Answers.ToList());
+
+                        if (!success)
+                        {
+                            await ExceptionHelper.ShowErrorDialogAsync("Karteikarte konnte nicht aktualisiert werden.", null, this.XamlRoot);
+                            return;
+                        }
+
+                        await LoadFlashcards(_selectedCategoryId);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                await ExceptionHelper.ShowErrorDialogAsync("Fehler beim Bearbeiten der Karteikarte.", ex, this.XamlRoot);
             }
         }
 
         private async void DeleteFlashcard_Click(object sender, RoutedEventArgs e)
         {
-            if ((sender as Button)?.DataContext is Flashcard selectedFlashcard)
+            try
             {
-                var confirmDialog = new ContentDialog
+                if ((sender as Button)?.DataContext is Flashcard selectedFlashcard)
                 {
-                    Title = "Karteikarte löschen",
-                    Content = $"Möchtest du die Karteikarte '{selectedFlashcard.Question}' wirklich löschen?",
-                    PrimaryButtonText = "Löschen",
-                    CloseButtonText = "Abbrechen",
-                    XamlRoot = this.XamlRoot
-                };
+                    var confirmDialog = new ContentDialog
+                    {
+                        Title = "Karteikarte löschen",
+                        Content = $"Möchtest du die Karteikarte '{selectedFlashcard.Question}' wirklich löschen?",
+                        PrimaryButtonText = "Löschen",
+                        CloseButtonText = "Abbrechen",
+                        XamlRoot = this.XamlRoot
+                    };
 
-                var result = await confirmDialog.ShowAsync();
-                if (result == ContentDialogResult.Primary)
-                {
-                    DatabaseHelper.DeleteFlashcard(selectedFlashcard.Id);
-                    LoadFlashcards(_selectedCategoryId);
+                    var result = await confirmDialog.ShowAsync();
+                    if (result == ContentDialogResult.Primary)
+                    {
+                        bool success = DatabaseHelper.DeleteFlashcard(selectedFlashcard.Id);
+
+                        if (!success)
+                        {
+                            await ExceptionHelper.ShowErrorDialogAsync("Karteikarte konnte nicht gelöscht werden.", null, this.XamlRoot);
+                            return;
+                        }
+
+                        await LoadFlashcards(_selectedCategoryId);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                await ExceptionHelper.ShowErrorDialogAsync("Fehler beim Löschen der Karteikarte.", ex, this.XamlRoot);
             }
         }
     }

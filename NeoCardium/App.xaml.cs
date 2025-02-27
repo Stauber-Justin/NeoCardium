@@ -16,6 +16,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Shapes;
 using System.Runtime.Versioning;
+using NeoCardium.Helpers;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -37,6 +38,13 @@ namespace NeoCardium
         public App()
         {
             this.InitializeComponent();
+
+            // Globales Fehlerhandling
+            UnhandledException += async (sender, e) =>
+            {
+                await ExceptionHelper.ShowErrorDialogAsync("Ein unerwarteter Fehler ist aufgetreten.", e.Exception);
+                e.Handled = true; // Verhindert Absturz & Debugger-Break
+            };
         }
 
         /// <summary>
@@ -52,6 +60,5 @@ namespace NeoCardium
             }
         }
 
-        
     }
 }

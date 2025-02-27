@@ -1,8 +1,11 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
+using System;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using NeoCardium.Models;
+using NeoCardium.Helpers;
 
 namespace NeoCardium.Views
 {
@@ -22,34 +25,72 @@ namespace NeoCardium.Views
             AnswersListView.ItemsSource = Answers;
         }
 
-        private void AddAnswer_Click(object sender, RoutedEventArgs e)
+        private async void AddAnswer_Click(object sender, RoutedEventArgs e)
         {
-            if (!string.IsNullOrWhiteSpace(AnswerTextBox.Text))
+            try
             {
-                Answers.Add(new FlashcardAnswer
+                if (!string.IsNullOrWhiteSpace(AnswerTextBox.Text))
                 {
-                    AnswerText = AnswerTextBox.Text,
-                    IsCorrect = IsCorrectCheckBox.IsChecked == true
-                });
+                    Answers.Add(new FlashcardAnswer
+                    {
+                        AnswerText = AnswerTextBox.Text.Trim(),
+                        IsCorrect = IsCorrectCheckBox.IsChecked == true
+                    });
 
-                AnswerTextBox.Text = ""; // Eingabe leeren
-                IsCorrectCheckBox.IsChecked = false;
+                    AnswerTextBox.Text = ""; // Eingabe leeren
+                    IsCorrectCheckBox.IsChecked = false;
+                }
+                else
+                {
+                    ExceptionHelper.ShowError(ErrorInfoBar, "Antwort darf nicht leer sein.");
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHelper.ShowError(ErrorInfoBar, $"Fehler beim Hinzufügen der Antwort: {ex.Message}");
             }
         }
 
-        private void RemoveAnswer_Click(object sender, RoutedEventArgs e)
+        private async void RemoveAnswer_Click(object sender, RoutedEventArgs e)
         {
-            if (AnswersListView.SelectedItem is FlashcardAnswer selectedAnswer)
+            try
             {
-                Answers.Remove(selectedAnswer);
+                if (AnswersListView.SelectedItem is FlashcardAnswer selectedAnswer)
+                {
+                    Answers.Remove(selectedAnswer);
+                }
+                else
+                {
+                    ExceptionHelper.ShowError(ErrorInfoBar, "Bitte wähle eine Antwort zum Löschen aus.");
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHelper.ShowError(ErrorInfoBar, $"Fehler beim Entfernen der Antwort: {ex.Message}");
             }
         }
 
         private void OnPrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
-            if (string.IsNullOrWhiteSpace(Question) || Answers.Count == 0)
+            try
             {
-                args.Cancel = true; // Dialog bleibt offen, wenn keine Antworten eingegeben wurden
+                if (string.IsNullOrWhiteSpace(Question))
+                {
+                    ExceptionHelper.ShowError(ErrorInfoBar, "Die Frage darf nicht leer sein.");
+                    args.Cancel = true;
+                    return;
+                }
+
+                if (Answers.Count == 0)
+                {
+                    ExceptionHelper.ShowError(ErrorInfoBar, "Mindestens eine Antwort muss eingegeben werden.");
+                    args.Cancel = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHelper.ShowError(ErrorInfoBar, $"Fehler beim Überprüfen der Eingabe: {ex.Message}");
+                args.Cancel = true;
             }
         }
     }

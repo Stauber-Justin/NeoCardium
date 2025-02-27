@@ -14,9 +14,12 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 
 using System.Collections.ObjectModel;
+using System.Runtime.Versioning;
+using System.Threading.Tasks;
 using NeoCardium.Models;
 using NeoCardium.Database;
-using System.Runtime.Versioning;
+using NeoCardium.Helpers;
+using System.Diagnostics;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -35,18 +38,37 @@ namespace NeoCardium.Views
         {
             this.InitializeComponent();
             DatabaseHelper.InitializeDatabase(); // Erstellt die Datenbank, falls sie nicht existiert
-            LoadCategories();
+            _ = LoadCategories();
         }
 
-        private void LoadCategories()
+        private async Task LoadCategories()
         {
-            Categories.Clear();
-            foreach (var category in DatabaseHelper.GetCategories())
+            try
             {
-                Categories.Add(category);
-            }
+                var categoriesFromDb = DatabaseHelper.GetCategories();
+                if (categoriesFromDb == null || categoriesFromDb.Count == 0)
+                {
+                    Debug.WriteLine("LoadCategories: Keine Kategorien gefunden.");
+                }
 
-            CategoryListView.ItemsSource = Categories;
+                // UI-Thread verwenden, um Fehler zu vermeiden
+                _ = DispatcherQueue.TryEnqueue(() =>
+                {
+                    Categories.Clear();
+                    foreach (var category in categoriesFromDb)
+                    {
+                        Categories.Add(category);
+                    }
+                    CategoryListView.ItemsSource = null; // UI entkoppeln
+                    CategoryListView.ItemsSource = Categories; // Neu setzen
+                });
+
+                Debug.WriteLine($"LoadCategories: {Categories.Count} Kategorien geladen.");
+            }
+            catch (Exception ex)
+            {
+                await ExceptionHelper.ShowErrorDialogAsync("Fehler beim Laden der Kategorien.", ex, this.XamlRoot);
+            }
         }
 
         private void CategoryListView_ItemClick(object sender, ItemClickEventArgs e)
@@ -67,54 +89,101 @@ namespace NeoCardium.Views
 
         private async void AddCategory_Click(object sender, RoutedEventArgs e)
         {
-            var categoryDialog = new CategoryDialog();
-            categoryDialog.XamlRoot = this.XamlRoot; // Setzt den Dialog ins UI-Root
-
-            var dialogResult = await categoryDialog.ShowAsync();
-
-            if (dialogResult == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(categoryDialog.EnteredCategoryName))
+            try
             {
-                DatabaseHelper.AddCategory(categoryDialog.EnteredCategoryName);
-                LoadCategories(); // Aktualisiert die Liste
-            }
-        }
-        private async void DeleteCategory_Click(object sender, RoutedEventArgs e)
-        {
-            if ((sender as MenuFlyoutItem)?.DataContext is Category selectedCategory)
-            {
-                var confirmDialog = new ContentDialog
-                {
-                    Title = "Kategorie löschen",
-                    Content = $"Möchtest du die Kategorie '{selectedCategory.CategoryName}' wirklich löschen?",
-                    PrimaryButtonText = "Löschen",
-                    CloseButtonText = "Abbrechen",
-                    XamlRoot = this.XamlRoot // Setzt den Dialog ins UI-Root
-                };
+                var categoryDialog = new CategoryDialog();
+                categoryDialog.XamlRoot = this.XamlRoot;
 
-                var result = await confirmDialog.ShowAsync();
-                if (result == ContentDialogResult.Primary)
+                var dialogResult = await categoryDialog.ShowAsync();
+                if (dialogResult == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(categoryDialog.EnteredCategoryName))
                 {
-                    DatabaseHelper.DeleteCategory(selectedCategory.Id);
-                    LoadCategories();
+                    // Prüfen, ob die Kategorie bereits existiert
+                    if (DatabaseHelper.CategoryExists(categoryDialog.EnteredCategoryName))
+                    {
+                        await ExceptionHelper.ShowErrorDialogAsync("Diese Kategorie existiert bereits.", null, this.XamlRoot);
+                        return;
+                    }
+
+                    bool success = DatabaseHelper.AddCategory(categoryDialog.EnteredCategoryName);
+                    Debug.WriteLine($"MainPage: AddCategory success = {success}");
+
+                    if (!success)
+                    {
+                        await ExceptionHelper.ShowErrorDialogAsync("Kategorie konnte nicht gespeichert werden.", null, this.XamlRoot);
+                        return;
+                    }
+
+                    await LoadCategories();
                 }
             }
+            catch (Exception ex)
+            {
+                await ExceptionHelper.ShowErrorDialogAsync("Fehler beim Erstellen der Kategorie.", ex, this.XamlRoot);
+            }
         }
 
+        private async void DeleteCategory_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if ((sender as MenuFlyoutItem)?.DataContext is Category selectedCategory)
+                {
+                    var confirmDialog = new ContentDialog
+                    {
+                        Title = "Kategorie löschen",
+                        Content = $"Möchtest du die Kategorie '{selectedCategory.CategoryName}' wirklich löschen?",
+                        PrimaryButtonText = "Löschen",
+                        CloseButtonText = "Abbrechen",
+                        XamlRoot = this.XamlRoot
+                    };
+
+                    var result = await confirmDialog.ShowAsync();
+                    if (result == ContentDialogResult.Primary)
+                    {
+                        bool success = DatabaseHelper.DeleteCategory(selectedCategory.Id);
+                        if (!success)
+                        {
+                            await ExceptionHelper.ShowErrorDialogAsync("Kategorie konnte nicht gelöscht werden.", null, this.XamlRoot);
+                            return;
+                        }
+
+                        await LoadCategories();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await ExceptionHelper.ShowErrorDialogAsync("Fehler beim Löschen der Kategorie.", ex, this.XamlRoot);
+            }
+        }
 
         private async void EditCategory_Click(object sender, RoutedEventArgs e)
         {
-            if ((sender as MenuFlyoutItem)?.DataContext is Category selectedCategory)
+            try
             {
-                var dialog = new CategoryDialog();
-                dialog.EnteredCategoryName = selectedCategory.CategoryName; // Setzt den alten Namen in das Textfeld
-                dialog.XamlRoot = this.XamlRoot; // Setzt den Dialog ins UI-Root
-
-                var result = await dialog.ShowAsync();
-                if (result == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(dialog.EnteredCategoryName))
+                if ((sender as MenuFlyoutItem)?.DataContext is Category selectedCategory)
                 {
-                    DatabaseHelper.UpdateCategory(selectedCategory.Id, dialog.EnteredCategoryName);
-                    LoadCategories();
+                    var dialog = new CategoryDialog();
+                    dialog.EnteredCategoryName = selectedCategory.CategoryName;
+                    dialog.XamlRoot = this.XamlRoot;
+
+                    var result = await dialog.ShowAsync();
+                    if (result == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(dialog.EnteredCategoryName))
+                    {
+                        bool success = DatabaseHelper.UpdateCategory(selectedCategory.Id, dialog.EnteredCategoryName);
+                        if (!success)
+                        {
+                            await ExceptionHelper.ShowErrorDialogAsync("Kategorie konnte nicht aktualisiert werden.", null, this.XamlRoot);
+                            return;
+                        }
+
+                        await LoadCategories();
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                await ExceptionHelper.ShowErrorDialogAsync("Fehler beim Bearbeiten der Kategorie.", ex, this.XamlRoot);
             }
         }
 
