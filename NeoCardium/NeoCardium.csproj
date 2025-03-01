@@ -15,7 +15,6 @@
   <ItemGroup>
     <None Remove="Views\CategoryDialog.xaml" />
     <None Remove="Views\FlashcardDialog.xaml" />
-    <None Remove="Views\FlashcardPage.xaml" />
     <None Remove="Views\FlashcardsPage.xaml" />
     <None Remove="Views\MainPage.xaml" />
     <None Remove="Views\SettingsPage.xaml" />
@@ -44,6 +43,7 @@
     <ProjectCapability Include="Msix" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.2" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1742" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.250205002" />
@@ -51,7 +51,6 @@
   <ItemGroup>
     <Folder Include="Database\" />
     <Folder Include="Services\" />
-    <Folder Include="ViewModels\" />
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\FlashcardDialog.xaml">
@@ -74,7 +73,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="Views\FlashcardPage.xaml">
+    <Page Update="Views\PracticePage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

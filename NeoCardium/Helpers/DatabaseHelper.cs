@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using System;
+using System.Data;
 
 using NeoCardium.Models;
 using NeoCardium.Helpers;
@@ -382,6 +383,29 @@ namespace NeoCardium.Database
             catch (Exception ex)
             {
                 _ = ExceptionHelper.ShowErrorDialogAsync("Fehler beim Aktualisieren der Karteikarte.", ex).ConfigureAwait(false);
+                return false;
+            }
+        }
+
+        public static bool UpdateFlashcardStats(int flashcardId, bool isCorrect)
+        {
+            try
+            {
+                using var db = GetConnection();
+                db.Open();
+
+                string columnToUpdate = isCorrect ? "CorrectCount" : "IncorrectCount";
+                string query = $"UPDATE Flashcards SET {columnToUpdate} = {columnToUpdate} + 1 WHERE Id = @FlashcardId";
+
+                using var command = new SqliteCommand(query, db);
+                command.Parameters.AddWithValue("@FlashcardId", flashcardId);
+                command.ExecuteNonQuery();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _ = ExceptionHelper.ShowErrorDialogAsync("Fehler beim Aktualisieren der Statistik.", ex).ConfigureAwait(false);
                 return false;
             }
         }

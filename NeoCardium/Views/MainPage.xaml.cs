@@ -49,6 +49,7 @@ namespace NeoCardium.Views
                 if (categoriesFromDb == null || categoriesFromDb.Count == 0)
                 {
                     Debug.WriteLine("LoadCategories: Keine Kategorien gefunden.");
+                    return;
                 }
 
                 // UI-Thread verwenden, um Fehler zu vermeiden

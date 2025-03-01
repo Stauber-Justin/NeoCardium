@@ -25,7 +25,7 @@ namespace NeoCardium.Views
             AnswersListView.ItemsSource = Answers;
         }
 
-        private async void AddAnswer_Click(object sender, RoutedEventArgs e)
+        private void AddAnswer_Click(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -51,7 +51,7 @@ namespace NeoCardium.Views
             }
         }
 
-        private async void RemoveAnswer_Click(object sender, RoutedEventArgs e)
+        private void RemoveAnswer_Click(object sender, RoutedEventArgs e)
         {
             try
             {

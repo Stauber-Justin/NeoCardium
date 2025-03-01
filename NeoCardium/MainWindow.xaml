@@ -18,7 +18,7 @@
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
 
-            <NavigationViewItem Content="Lernmodus" Tag="FlashcardPage">
+            <NavigationViewItem Content="Lernmodus" Tag="PracticePage">
                 <NavigationViewItem.Icon>
                     <SymbolIcon Symbol="Library"/>
                 </NavigationViewItem.Icon>
