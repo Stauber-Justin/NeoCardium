@@ -1,4 +1,6 @@
-﻿namespace NeoCardium.Models
+﻿using System.ComponentModel;
+
+namespace NeoCardium.Models
 {
     public class Flashcard
     {

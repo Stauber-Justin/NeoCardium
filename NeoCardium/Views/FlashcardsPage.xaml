@@ -11,35 +11,50 @@
     xmlns:models="using:NeoCardium.Models"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <NavigationView x:Name="FlashcardNavView">
-        <NavigationView.Header>
-            <TextBlock Text="Karteikarten" FontSize="24" FontWeight="Bold" Margin="12,0"/>
-        </NavigationView.Header>
+    <!-- Hier kommen globale Ressourcen rein -->
+    <Page.Resources>
+        <MenuFlyout x:Key="FlashcardContextFlyout">
+            <MenuFlyoutItem Text="Löschen"
+                        Click="DeleteFlashcard_Click"
+                        CommandParameter="{Binding}" />
+        </MenuFlyout>
+    </Page.Resources>
 
-        <NavigationView.Content>
-            <Grid Padding="20">
-                <StackPanel>
-                    <ListView x:Name="FlashcardsListView"
-                              SelectionMode="Single"
-                              ItemsSource="{Binding Flashcards}"
-                              Height="300">
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="models:Flashcard">
-                                <StackPanel Orientation="Vertical" Padding="10">
-                                    <TextBlock Text="{x:Bind Question}" FontSize="18"/>
-                                    <TextBlock Text="Antwort: {x:Bind Answer}" FontSize="14" Foreground="Gray"/>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                        <Button Content="✏ Bearbeiten" Click="EditFlashcard_Click"/>
-                                        <Button Content="🗑 Löschen" Click="DeleteFlashcard_Click" Margin="10,0,0,0"/>
-                                    </StackPanel>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
+    <!-- Hier kommt der UI-Code -->
+    <StackPanel Orientation="Vertical" Padding="10">
 
-                    <Button Content="Neue Karteikarte erstellen" Click="AddFlashcard_Click" Margin="0,10,0,0"/>
-                </StackPanel>
-            </Grid>
-        </NavigationView.Content>
-    </NavigationView>
+        <!-- Button zum Erstellen einer neuen Karteikarte -->
+        <Button x:Name="AddFlashcardButton"
+            Content="Neue Karteikarte erstellen"
+            Click="AddFlashcard_Click"
+            HorizontalAlignment="Center"
+            Margin="0,0,0,10"/>
+
+        <!-- Liste der Karteikarten -->
+        <ListView x:Name="FlashcardsListView" 
+          ItemsSource="{x:Bind Flashcards}" 
+          IsRightTapEnabled="True"
+          RightTapped="FlashcardsListView_RightTapped"
+          SelectionChanged="FlashcardsListView_SelectionChanged">
+
+            <!-- Definiere das ItemTemplate für das Layout der Einträge -->
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="models:Flashcard">
+                    <ListViewItem ContextFlyout="{StaticResource FlashcardContextFlyout}">
+                    <StackPanel Orientation="Horizontal" Padding="10">
+                        <TextBlock Text="{x:Bind Question}" FontWeight="Bold"/>
+                        <TextBlock Text=" | " Foreground="Gray"/>
+                        <TextBlock Text="{x:Bind CorrectCount}" Foreground="Green"/>
+                        <TextBlock Text="✅ | " Foreground="Gray"/>
+                        <TextBlock Text="{x:Bind IncorrectCount}" Foreground="Red"/>
+                        <TextBlock Text="❌" Foreground="Gray"/>
+                    </StackPanel>
+                        </ListViewItem>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+
+        </ListView>
+    </StackPanel>
+
 </Page>
+
