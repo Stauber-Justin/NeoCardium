@@ -37,6 +37,8 @@ namespace NeoCardium
 
         public App()
         {
+            Environment.SetEnvironmentVariable("MICROSOFT_WINDOWSAPPRUNTIME_BASE_DIRECTORY", AppContext.BaseDirectory);
+
             this.InitializeComponent();
 
             // Globales Fehlerhandling

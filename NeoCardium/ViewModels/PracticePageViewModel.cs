@@ -50,6 +50,8 @@ namespace NeoCardium.ViewModels
                     CurrentQuestion.UpdateCorrectCount();
                     DatabaseHelper.UpdateFlashcardStats(CurrentQuestion.Id, true);
                     FeedbackMessage = "✅ Richtig!";
+                    IsFeedbackVisible = true;
+                    await Task.Delay(750);
                 }
                 else
                 {
@@ -60,10 +62,11 @@ namespace NeoCardium.ViewModels
                     }
                     CurrentQuestion.UpdateIncorrectCount();
                     DatabaseHelper.UpdateFlashcardStats(CurrentQuestion.Id, false);
-                    FeedbackMessage = $"Falsch⚠\n Die richtige Antwort lautet:\n {AnswerOptions.First(a => a.IsCorrect).AnswerText}";
+                    FeedbackMessage = $"⚠Falsch⚠\n Die richtige Antwort lautet :  {AnswerOptions.First(a => a.IsCorrect).AnswerText}";
+                    IsFeedbackVisible = true;
+                    await Task.Delay(2000);
                 }
-                IsFeedbackVisible = true;
-                await Task.Delay(2000);
+                
                 IsFeedbackVisible = false;
                 LoadNextQuestion();
             });
@@ -164,19 +167,24 @@ namespace NeoCardium.ViewModels
         [RelayCommand]
         public void TogglePracticeSession(Category selectedCategory)
         {
-            if (IsSessionActive)
+            if (!IsSessionActive)
             {
-                // Sitzung beenden
-                IsSessionActive = false;
-                ResetPracticeSession();
+                if (selectedCategory == null)
+                {
+                    FeedbackMessage = "⚠ Fehler: Keine Kategorie ausgewählt!";
+                    IsFeedbackVisible = true;
+                    return;
+                }
+
+                StartPractice(selectedCategory);
             }
             else
             {
-                // Sitzung starten
-                StartPractice(selectedCategory);
-                IsSessionActive = true;
+                ResetPracticeSession();
             }
+            IsSessionActive = !IsSessionActive;
         }
+
 
         private void ResetPracticeSession()
         {
@@ -229,10 +237,28 @@ namespace NeoCardium.ViewModels
 
         private void LoadAnswers()
         {
-            FeedbackMessage = "";
+            if (CurrentQuestion == null)
+            {
+                Console.WriteLine("⚠ Fehler: Keine aktuelle Frage gesetzt.");
+                return;
+            }
+
+            Console.WriteLine($"Lade Antworten für Frage ID: {CurrentQuestion.Id}");
             var answers = DatabaseHelper.GetRandomAnswersForFlashcard(CurrentQuestion.Id);
-            AnswerOptions = new ObservableCollection<FlashcardAnswer>(answers ?? new List<FlashcardAnswer>());
+
+            if (answers == null)
+            {
+                Console.WriteLine("⚠ Fehler: Nicht genügend Antworten verfügbar!");
+                return;
+            }
+
+            AnswerOptions = new ObservableCollection<FlashcardAnswer>(answers);
+            while (answers.Count < 4)
+            {
+                answers.Add(new FlashcardAnswer { AnswerText = "N/A", IsCorrect = false });
+            }
         }
+
 
         private void ShowFinalStatistics()
         {

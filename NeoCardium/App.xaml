@@ -15,7 +15,9 @@
             </ResourceDictionary.MergedDictionaries>
             <!-- Other app resources here -->
             <helps:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <helps:BooleanToVisibilityConverter x:Key="BooleanToVisibilityInvertedConverter"/>
             <helps:BooleanToStartCancelConverter x:Key="BooleanToStartCancelConverter"/>
+            <helps:AnswerIndexToGridColumnConverter x:Key="AnswerIndexToGridColumnConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
