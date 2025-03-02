@@ -1,21 +1,26 @@
 ﻿using Microsoft.Data.Sqlite;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Linq;
 using System;
-using System.Data;
+using System.IO;
+using System.Linq;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Reflection;
 
 using NeoCardium.Models;
 using NeoCardium.Helpers;
-using System.Diagnostics;
 
 namespace NeoCardium.Database
 {
+
     public static class DatabaseHelper
     {
-        private static string _dbPath = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), "NeoCardium.db");
+        // Pfad zur Datenbank im lokalen Anwendungsdatenverzeichnis
+        private static readonly string _appFolder = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName)
+            ?? throw new InvalidOperationException("Konnte den Speicherort des Programms nicht bestimmen.");
+
+        private static readonly string _dataFolder = Path.Combine(_appFolder, "Data");
+        private static readonly string _dbPath = Path.Combine(_dataFolder, "NeoCardium.db");
 
         private static SqliteConnection GetConnection()
         {
@@ -26,6 +31,8 @@ namespace NeoCardium.Database
         {
             try
             {
+                EnsureDatabasePathExists();
+
                 using var db = GetConnection();
                 db.Open();
 
@@ -54,6 +61,8 @@ namespace NeoCardium.Database
                 cardCommand.ExecuteNonQuery();
                 using var cardAnswerTable = new SqliteCommand(createFlashcardAnswersTable, db);
                 cardAnswerTable.ExecuteNonQuery();
+
+                Console.WriteLine($"[SUCCESS] Datenbank erfolgreich initialisiert: {_dbPath}");
             }
             catch (Exception ex)
             {
@@ -61,6 +70,21 @@ namespace NeoCardium.Database
             }
         }
 
+        private static void EnsureDatabasePathExists()
+        {
+            try
+            {
+                if (!Directory.Exists(_dataFolder))
+                {
+                    Directory.CreateDirectory(_dataFolder);
+                    Console.WriteLine($"[INFO] Data-Verzeichnis erstellt: {_dataFolder}");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Fehler beim Erstellen des Datenbankverzeichnisses.", ex);
+            }
+        }
 
         public static ObservableCollection<Category> GetCategories()
         {
