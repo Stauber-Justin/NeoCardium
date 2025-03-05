@@ -143,6 +143,31 @@ namespace NeoCardium.Database
             return flashcards;
         }
 
+        public static string GetCorrectAnswerForFlashcard(int flashcardId)
+        {
+            try
+            {
+                using var db = GetConnection();
+                db.Open();
+
+                string query = "SELECT AnswerText FROM FlashcardAnswers WHERE FlashcardId = @FlashcardId AND IsCorrect = 1 LIMIT 1";
+                using var command = new SqliteCommand(query, db);
+                command.Parameters.AddWithValue("@FlashcardId", flashcardId);
+                using var reader = command.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    return reader.GetString(0); // ✅ Gibt die richtige Antwort zurück
+                }
+            }
+            catch (Exception ex)
+            {
+                _ = ExceptionHelper.ShowErrorDialogAsync("Fehler beim Abrufen der richtigen Antwort.", ex).ConfigureAwait(false);
+            }
+            return "Antwort nicht gefunden"; // Falls keine Antwort existiert
+        }
+
+
         public static List<FlashcardAnswer> GetAnswersByFlashcard(int flashcardId)
         {
             List<FlashcardAnswer> answers = new();

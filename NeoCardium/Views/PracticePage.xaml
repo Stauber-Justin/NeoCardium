@@ -20,8 +20,11 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Kategorie Auswahl (nur anzeigen, wenn keine Session läuft) -->
-        <ComboBox Grid.Row="0" Margin="10" 
+        <Grid Grid.Row="0">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+    IsHitTestVisible="{Binding IsSessionActive, Converter={StaticResource BooleanToVisibilityInvertedConverter}}">
+                <!-- Kategorie Auswahl (nur anzeigen, wenn keine Session läuft) -->
+                <ComboBox Grid.Row="0" Margin="10" 
                   ItemsSource="{Binding Categories}"
                   SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
                   DisplayMemberPath="CategoryName"
@@ -30,8 +33,23 @@
                   VerticalAlignment="Center"
                   Width="300"
                   Visibility="{Binding IsSessionActive, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=True}">
-            
-        </ComboBox>
+
+                </ComboBox>
+
+
+                <!-- Modus Auswahl (nur anzeigen, wenn keine Session läuft) -->
+                <ComboBox Grid.Row="1" Margin="0"
+          ItemsSource="{Binding AvailableModes}"
+          SelectedItem="{Binding SelectedModeOption, Mode=TwoWay}"
+          DisplayMemberPath="ModeName"
+          PlaceholderText="Lernmodus wählen"
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center"
+          Width="300"
+          Visibility="{Binding IsSessionActive, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=True}">
+                </ComboBox>
+            </StackPanel>
+        </Grid>
 
         <!-- Fokusmodus (nur anzeigen, wenn eine Session läuft) -->
         <Grid Grid.Row="0" Margin="20" Visibility="{Binding IsSessionActive, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -44,7 +62,7 @@
             <!-- Frage anzeigen -->
             <Border Padding="20" Background="#1E1E1E" CornerRadius="10" Margin="0,0,0,40">
                 <TextBlock Text="{Binding CurrentQuestion.Question}"
-                           FontSize="24" FontWeight="Bold" Foreground="White" TextWrapping="Wrap" 
+                           FontSize="24" FontWeight="Bold" Foreground="White" TextWrapping="Wrap"
                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
 
@@ -54,85 +72,66 @@
                        HorizontalAlignment="Center" VerticalAlignment="Center"
                        Visibility="{Binding IsFeedbackVisible, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
-            <!-- Antwortmöglichkeiten -->
-            <Grid Grid.Row="2" Margin="40,20,40,0" HorizontalAlignment="Center" Width="600">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+            <!-- Multiple-Choice-Modus -->
+            <Grid Grid.Row="2">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top"
+                Visibility="{Binding SelectedMode, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=MultipleChoice}">
+                    <ItemsControl ItemsSource="{Binding AnswerOptions}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <VariableSizedWrapGrid MaximumRowsOrColumns="2" Orientation="Horizontal" HorizontalAlignment="Center"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
 
-                <!-- Button 1 (oben links) -->
-                <Border Grid.Row="0" Grid.Column="0" Background="#444" CornerRadius="30" Margin="10">
-                    <Button Content="{Binding AnswerOptions[0].AnswerText}"
-                            Command="{Binding CheckAnswerAsync}"
-                            CommandParameter="{Binding AnswerOptions[0]}"
-                            Padding="20,10"
-                            FontSize="18"
-                            Background="#222"
-                            Foreground="White"
-                            BorderBrush="LightBlue"
-                            BorderThickness="2"
-                            Margin="5"
-                            CornerRadius="10"
-                            Width="280"
-                            HorizontalAlignment="Stretch"/>
-                </Border>
-
-                <!-- Button 2 (oben rechts) -->
-                <Border Grid.Row="0" Grid.Column="1" Background="#444" CornerRadius="30" Margin="10">
-                    <Button Content="{Binding AnswerOptions[1].AnswerText}"
-                            Command="{Binding CheckAnswerAsync}"
-                            CommandParameter="{Binding AnswerOptions[1]}"
-                            Padding="20,10"
-                            FontSize="18"
-                            Background="#222"
-                            Foreground="White"
-                            BorderBrush="LightBlue"
-                            BorderThickness="2"
-                            Margin="5"
-                            CornerRadius="10"
-                            Width="280"
-                            HorizontalAlignment="Stretch"/>
-                </Border>
-
-                <!-- Button 3 (unten links) -->
-                <Border Grid.Row="1" Grid.Column="0" Background="#444" CornerRadius="30" Margin="10">
-                    <Button Content="{Binding AnswerOptions[2].AnswerText}"
-                            Command="{Binding CheckAnswerAsync}"
-                            CommandParameter="{Binding AnswerOptions[2]}"
-                            Padding="20,10"
-                            FontSize="18"
-                            Background="#222"
-                            Foreground="White"
-                            BorderBrush="LightBlue"
-                            BorderThickness="2"
-                            Margin="5"
-                            CornerRadius="10"
-                            Width="280"
-                            HorizontalAlignment="Stretch"/>
-                </Border>
-
-                <!-- Button 4 (unten rechts) -->
-                <Border Grid.Row="1" Grid.Column="1" Background="#444" CornerRadius="30" Margin="10">
-                    <Button Content="{Binding AnswerOptions[3].AnswerText}"
-                            Command="{Binding CheckAnswerAsync}"
-                            CommandParameter="{Binding AnswerOptions[3]}"
-                            Padding="20,10"
-                            FontSize="18"
-                            Background="#222"
-                            Foreground="White"
-                            BorderBrush="LightBlue"
-                            BorderThickness="2"
-                            Margin="5"
-                            CornerRadius="10"
-                            Width="280"
-                            HorizontalAlignment="Stretch"/>
-                </Border>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#444" CornerRadius="30" Margin="10">
+                                    <Button Content="{Binding AnswerText}"
+                                Command="{Binding DataContext.CheckAnswerAsync, ElementName=PracticePageView}"
+                                CommandParameter="{Binding}"
+                                Padding="20,10"
+                                FontSize="18"
+                                Background="#222"
+                                Foreground="White"
+                                BorderBrush="LightBlue"
+                                BorderThickness="2"
+                                Margin="5"
+                                CornerRadius="10"
+                                Width="280"
+                                HorizontalAlignment="Stretch"/>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
             </Grid>
+
+            <!-- Classic-Card-Modus -->
+            <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Top"
+            Visibility="{Binding SelectedMode, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Flashcard}">
+
+                <!-- Antwort-Button -->
+                <Button Content="{Binding AnswerButtonText}"
+                        Command="{Binding RevealAnswerCommand}"
+                        Padding="15,5"
+                        FontSize="18"
+                        Width="250"
+                        HorizontalAlignment="Center"
+                        Margin="20"/>
+
+
+                <!-- Antwort-Anzeige -->
+                <Border Background="#1E1E1E" CornerRadius="10" Padding="20" Margin="20,10,20,0"
+            Visibility="{Binding IsAnswerRevealed, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <TextBlock Text="{Binding CurrentQuestion.Answer}"
+                   FontSize="22" FontWeight="Bold" Foreground="White" 
+                   TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                </Border>
+
+            </StackPanel>
+
+
+
         </Grid>
 
         <!-- Start/Abbrechen Button -->

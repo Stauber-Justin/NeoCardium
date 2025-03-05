@@ -1,0 +1,164 @@
+
+
+---
+
+### 🚀 **Zukunftspläne**
+📌 **Nächste Schritte:**
+- **Lernmodus mit Statistiken & Fortschrittsverfolgung.**
+- **Drag & Drop für Karteikarten-Organisation.**
+- **Erweiterung der Cloud-Synchronisation.**
+
+---
+
+ 
+
+---
+
+## **📌 Version 1.0 – Stabilitätsupdate & UI-Feinschliff**
+📅 **2025-03-01**
+
+### **🔹 Verbesserungen am Fehlerhandling**
+- **Exception-Handling überarbeitet (`ExceptionHelper.ShowError()`).**
+- **UI-Fehler durch `CommandParameter="{Binding}"` im Kontextmenü behoben**.
+
+### **🔹 Finaler Feinschliff**
+- **Dark Mode verbessert**.
+- **Antwortmöglichkeiten visuell optimiert (Checkmarks ✅ / ❌).**
+- **Navigation & Styling angepasst**.
+
+🎉 **NeoCardium ist jetzt bereit für den Beta Einsatz!** 🚀  
+Falls du Änderungen hinzufügen möchtest, erstelle bitte ein **Pull Request**. 
+
+---
+
+## **📌 Version 0.9 – CSV-Import & Datenbank-Optimierung**
+📅 **[Datum]**
+
+### **🔹 CSV-Import-Funktion eingeführt**
+- **Neue Datei `DatabaseHelperCSVImport.cs` erstellt**.
+- **CSV-Daten (Fragen, Antworten, Kategorien) können nun importiert werden**.
+- **Fehlerhafte oder fehlende Werte werden automatisch erkannt & übersprungen**.
+
+**Automatische Generierung eines SQL-Import-Skripts für SQLite.**
+
+---
+
+## **📌 Version 0.8 – Verbesserungen der Datenbankverwaltung**
+📅 **[Datum]**
+
+### **💾 Fehlerbehebungen & Performance-Verbesserungen**
+- **Doppelte Kategorien verhindern** (`CategoryExists()`-Methode hinzugefügt).
+- **Datenbanktransaktionen für bessere Konsistenz verbessert**.
+- **SQLite-Abfragen optimiert**.
+
+---
+
+## **📌 Version 0.7 – Performance-Optimierung & Self-Contained Build**
+📅 **[Datum]**
+
+### **📌 Self-Contained Deployment & Build-Optimierung**
+- **Self-Contained Build für WinUI 3 ohne MSIX ermöglicht**.
+
+---
+
+## **📌 Version 0.6 – Erweiterungen & Verbesserungen**
+📅 **[Datum]**
+
+### **🔹 Verbesserungen an der Benutzerfreundlichkeit**
+- **Kontextmenü für Flashcards hinzugefügt** (Rechtsklick → Löschen).
+- **NavigationView für einfachere Bedienung integriert**.
+
+---
+
+## **📌 Version 0.5 – Debugging & Fehlerbehebungen**
+📅 **[Datum]**
+
+✅ **Fixes für Laufzeitfehler:**
+1️⃣ **"MainWindow nicht gefunden"** → `using NeoCardium.Views;` hinzugefügt.  
+2️⃣ **"InitializeComponent fehlt"** → `partial class`-Verknüpfung korrigiert.  
+3️⃣ **SplashScreen-Fehler behoben** (`Assets/SplashScreen.png` hinzugefügt).  
+4️⃣ **UnhandledException-Fehler gefixt** (`Debug.WriteLine(e.Exception)`).  
+
+---
+
+## **📌 Version 0.4 – UI-Entwicklung**
+📅 **[Datum]**
+
+### **🎨 Erste UI-Implementierung**
+- `MainWindow.xaml` erstellt mit:
+    - **Liste der Karteikarten (`ListView`)**.
+    - **Detailansicht mit `TextBox` für Frage & Antwort**.
+    - **Buttons für "Hinzufügen", "Löschen", "Bearbeiten"**.
+- **Datenbindung (`x:Bind` & `Binding`) integriert**.
+
+✅ **Neuer `Helpers/`-Ordner eingeführt:**
+- `NullToBooleanConverter.cs` – Aktiviert Buttons nur bei gültigen Daten.
+- `NullToVisibilityConverter.cs` – Versteckt UI-Elemente bei `null`.
+
+---
+
+## **📌 Version 0.3 – Datenbank & Flashcard-Modell**
+📅 **[Datum]**
+
+### **💾 SQLite-Integration**
+- **SQLite-Paket (`Microsoft.Data.Sqlite`) installiert**.
+- **Datenmodell für Karteikarten (`Flashcard.cs`) erstellt:**
+
+  ```csharp
+  public class Flashcard
+  {
+      public int Id { get; set; }
+      public string Question { get; set; } = string.Empty;
+      public List<string> Answers { get; set; } = new();
+      public int CorrectAnswerIndex { get; set; }
+      public int CorrectCount { get; set; }
+      public int IncorrectCount { get; set; }
+      public string Category { get; set; } = "Allgemein";
+  }
+  ```
+
+- **`DatabaseService.cs` eingeführt:**
+    - `InitializeDatabaseAsync()`: Erstellt die Datenbank & Tabellen.
+    - `GetFlashcardsAsync()`, `AddFlashcardAsync()`, `UpdateFlashcardAsync()`, `DeleteFlashcardAsync()`.
+
+✅ **Bugfixes:**
+- **Fehlendes `ToList()` hinzugefügt** (`using System.Linq;`).
+- **AOT-Kompatibilität verbessert** (`SetProperty(ref _field, value);`).
+
+---
+
+## **📌 Version 0.2 – Entwicklungsumgebung eingerichtet**
+📅 **[Datum]**
+
+### **🛠 Werkzeuge & Setup**
+- **Visual Studio 2022** als Entwicklungsumgebung.
+- **Windows App SDK** für WinUI 3 installiert.
+- **Projektstruktur erstellt:**
+  
+  ```plaintext
+  📂 NeoCardium
+  ┣ 📂 Models        # Datenmodelle (z. B. Flashcard)
+  ┣ 📂 ViewModels    # MVVM-Logik
+  ┣ 📂 Views         # XAML-Dateien (UI)
+  ┣ 📂 Services      # Datenbank- & Geschäftslogik
+  ┣ 📂 Helpers       # UI-Hilfsfunktionen
+  ┣ 📂 Assets        # Icons, SplashScreens
+  ┣ 📜 App.xaml      # App-Styles & Ressourcen
+  ┣ 📜 MainWindow.xaml  # Hauptfenster
+  ┣ 📜 MainWindow.xaml.cs  # Code-Behind für MainWindow.xaml
+  ```
+
+---
+
+## **📌 Version 0.1 – Initiales Konzept & Planung**
+📅 **[Datum]**
+
+### **📝 Projektidee & Ziele definiert**
+- Entwicklung einer Karteikarten-Applikation für Windows 11 mit **WinUI 3**.
+- Funktionale Anforderungen:
+    - Erstellung, Bearbeitung und Speicherung von Karteikarten.
+    - **Multiple-Choice-Antworten** statt direkter Lösungen.
+    - **Statistikfunktion** zur Auswertung des Lernerfolgs.
+- Architektur:
+    - **MVVM-Pattern** für eine saubere Trennung von UI und Logik.
+    - **.NET 6/7** als Laufzeitumgebung.

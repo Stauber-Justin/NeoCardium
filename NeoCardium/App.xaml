@@ -5,7 +5,8 @@
     
     x:Class="NeoCardium.App"
     xmlns:local="using:NeoCardium"
-    xmlns:helps="using:NeoCardium.Helpers">
+    xmlns:helps="using:NeoCardium.Helpers"
+    xmlns:converters="using:NeoCardium.Converters">
 
     <Application.Resources>
         <ResourceDictionary>
@@ -18,6 +19,8 @@
             <helps:BooleanToVisibilityConverter x:Key="BooleanToVisibilityInvertedConverter"/>
             <helps:BooleanToStartCancelConverter x:Key="BooleanToStartCancelConverter"/>
             <helps:AnswerIndexToGridColumnConverter x:Key="AnswerIndexToGridColumnConverter"/>
+            <converters:EnumToVisibilityConverter x:Key="EnumToVisibilityConverter"/>
+            <converters:EnumToVisibilityConverter x:Key="BooleanToAnswerTextConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

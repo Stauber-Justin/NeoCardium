@@ -25,6 +25,8 @@ namespace NeoCardium.ViewModels
         private ObservableCollection<Flashcard> _questions = new();
         private Flashcard _currentQuestion = new Flashcard { Question = "Lade Frage..." };
         private ObservableCollection<FlashcardAnswer> _answerOptions = new();
+        public string AnswerButtonText => IsAnswerRevealed ? "Nächste Frage" : "Antwort anzeigen";
+        private bool _isAnswerRevealed;
         private string _feedbackMessage = string.Empty;
         private bool _isFeedbackVisible = false;
         private bool _isSessionActive;
@@ -112,6 +114,43 @@ namespace NeoCardium.ViewModels
             set => SetProperty(ref _answerOptions, value);
         }
 
+        public bool IsAnswerRevealed
+        {
+            get => _isAnswerRevealed;
+            set
+            {
+                SetProperty(ref _isAnswerRevealed, value);
+                OnPropertyChanged(nameof(IsAnswerRevealed));
+                OnPropertyChanged(nameof(AnswerButtonText)); // Erzwingt UI-Update!
+            }
+        }
+
+        public ObservableCollection<PracticeModeOption> AvailableModes { get; } = new ObservableCollection<PracticeModeOption>
+        {
+            new PracticeModeOption { Mode = PracticeMode.MultipleChoice, ModeName = "Multiple-Choice" },
+            new PracticeModeOption { Mode = PracticeMode.Flashcard, ModeName = "Karteikarten-Modus" }
+        };
+
+        private PracticeMode _selectedMode;
+        public PracticeMode SelectedMode
+        {
+            get => _selectedMode;
+            set => SetProperty(ref _selectedMode, value);
+        }
+
+        private PracticeModeOption _selectedModeOption;
+        public PracticeModeOption SelectedModeOption
+        {
+            get => _selectedModeOption;
+            set
+            {
+                if (SetProperty(ref _selectedModeOption, value) && value != null)
+                {
+                    SelectedMode = value.Mode;
+                }
+            }
+        }
+
         public string FeedbackMessage
         {
             get => _feedbackMessage;
@@ -161,7 +200,15 @@ namespace NeoCardium.ViewModels
             Console.WriteLine($"{flashcards.Count} Fragen geladen.");
             Questions = new ObservableCollection<Flashcard>(flashcards);
             _usedQuestions.Clear();
-            LoadNextQuestion();
+
+            if (SelectedMode == PracticeMode.MultipleChoice)
+            {
+                LoadNextQuestion();  // Starte Multiple-Choice-Modus
+            }
+            else if (SelectedMode == PracticeMode.Flashcard)
+            {
+                LoadFlashcard();  // Methode für Flashcard-Modus (kommt später)
+            }
         }
 
         [RelayCommand]
@@ -233,6 +280,57 @@ namespace NeoCardium.ViewModels
                 IncorrectCount = nextQuestion.IncorrectCount
             };
             LoadAnswers();
+        }
+        public void LoadFlashcard()
+        {
+            if (Questions.Count == 0)
+            {
+                FeedbackMessage = "⚠ Keine Fragen in dieser Kategorie!";
+                IsFeedbackVisible = true;
+                return;
+            }
+
+            Flashcard nextFlashcard;
+            do
+            {
+                nextFlashcard = Questions[_random.Next(Questions.Count)];
+            } while (_usedQuestions.Contains(nextFlashcard.Id) && _usedQuestions.Count < Questions.Count);
+
+            _usedQuestions.Add(nextFlashcard.Id);
+
+            // 🛠️ Antwort wird jetzt aus der neuen Funktion geholt
+            string correctAnswer = DatabaseHelper.GetCorrectAnswerForFlashcard(nextFlashcard.Id);
+
+            CurrentQuestion = new Flashcard
+            {
+                Id = nextFlashcard.Id,
+                Question = nextFlashcard.Question,
+                Answer = correctAnswer, // ✅ Antwort aus der neuen Methode holen!
+                CorrectCount = nextFlashcard.CorrectCount,
+                IncorrectCount = nextFlashcard.IncorrectCount
+            };
+
+            Console.WriteLine($"✅ LoadFlashcard: Frage geladen: {CurrentQuestion.Question}");
+            Console.WriteLine($"✅ LoadFlashcard: Antwort geladen: {CurrentQuestion.Answer}");
+
+            OnPropertyChanged(nameof(CurrentQuestion));
+            OnPropertyChanged(nameof(CurrentQuestion.Answer));
+
+            IsAnswerRevealed = false;
+        }
+
+        [RelayCommand]
+        public void RevealAnswer()
+        {
+            if (!IsAnswerRevealed)
+            {
+                IsAnswerRevealed = true;
+            }
+            else
+            {
+                LoadFlashcard();  // Sofort eine neue Frage laden
+            }
+            OnPropertyChanged(nameof(AnswerButtonText)); // Aktualisiert den Button-Text
         }
 
         private void LoadAnswers()

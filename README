@@ -1,0 +1,142 @@
+Hier ist eine **strukturierte und professionelle `README.md`** für dein **NeoCardium**-Projekt mit **WinUI 3 und SQLite**:
+
+---
+
+# **📌 NeoCardium – Die moderne Karteikarten-App für Windows 11**  
+🚀 **Lernmanagement mit WinUI 3 & SQLite**  
+
+---
+
+## **📖 Inhaltsverzeichnis**
+- [📌 Einführung](#-einführung)
+- [✨ Features](#-features)
+- [🛠 Technologie-Stack](#-technologie-stack)
+- [🚀 Installation](#-installation)
+- [📂 Projektstruktur](#-projektstruktur)
+- [📜 Changelog](#-changelog)
+- [📢 Roadmap](#-roadmap)
+- [📝 Lizenz](#-lizenz)
+- [🤝 Pull-Request](#-pull-request)
+
+---
+
+## **📌 Einführung**
+**NeoCardium** ist eine moderne **Karteikarten-App für Windows 11**, die mit **WinUI 3, .NET 6/7 und SQLite** entwickelt wurde.  
+Sie ermöglicht ein effizientes Lernen durch **Multiple-Choice-Antworten, eine smarte Statistikfunktion und eine intuitive Benutzeroberfläche**.  
+
+Ob zum **Sprachen lernen, für Prüfungen oder einfach zur Wissenserweiterung** – NeoCardium hilft dir, effizienter zu lernen!  
+
+---
+
+## **✨ Features**
+✅ **Erstellung & Verwaltung von Karteikarten**  
+✅ **Multiple-Choice-Antworten & Kategorisierung**  
+✅ **Intuitive WinUI 3-Oberfläche mit Fluent Design**  
+✅ **SQLite-Datenbank zur Speicherung deiner Lernkarten**  
+✅ **Statistiken zur Lernanalyse** (Anzahl richtige/falsche Antworten)    
+✅ **Dunkelmodus & modernes Design für Windows 11**  
+✅ **Self-Contained EXE ohne Installation lauffähig**  
+
+---
+
+## **🛠 Technologie-Stack**
+NeoCardium wurde mit folgenden Technologien entwickelt:
+
+| **Technologie**  | **Beschreibung** |
+|-----------------|----------------|
+| 🖥 **WinUI 3**  | Moderne Windows-UI mit Fluent Design |
+| 🏗 **.NET 6/7** | Leistungsstarke .NET-Laufzeitumgebung |
+| 💾 **SQLite**   | Schnelle, lokale Datenbank für Offline-Nutzung |
+| 🏛 **MVVM**     | Saubere Architektur für bessere Wartung |
+| 📦 **Windows App SDK** | Moderne Windows-App-Entwicklung |
+
+---
+
+## **🚀 Installation**
+### **🔹 Voraussetzungen**
+📌 **Windows 11**  
+📌 **.NET 6/7 SDK** (falls du das Projekt selbst kompilieren möchtest)  
+
+### **🔹 Option 1: Portable EXE (Empfohlen)**
+1. Lade die neueste **Release-Version** [📥 hier](#) herunter.
+2. Entpacke das ZIP-Archiv an einen beliebigen Ort.
+3. **Doppelklick auf `NeoCardium.exe`**, um die App zu starten! ✅  
+
+### **🔹 Option 2: Manuelle Installation (Entwicklermodus)**
+Falls du die App selbst kompilieren möchtest:  
+
+```sh
+git clone https://github.com/Stauber-Justin/NeoCardium.git
+cd NeoCardium
+dotnet build -c Release
+dotnet run
+```
+
+---
+
+## **📂 Projektstruktur**
+Das Projekt ist nach dem **MVVM-Pattern** strukturiert:
+
+```plaintext
+📂 NeoCardium
+ ┣ 📂 Models           # Datenmodelle (z. B. Flashcard)
+ ┣ 📂 ViewModels       # MVVM-Logik (Datenverwaltung)
+ ┣ 📂 Views            # XAML-Dateien (UI)
+ ┣ 📂 Services         # Datenbank- und Geschäftslogik
+ ┣ 📂 Helpers          # UI-Hilfsfunktionen (Converter, Formatierer)
+ ┣ 📂 Assets           # Icons, SplashScreens
+ ┣ 📜 App.xaml         # Globale Ressourcen und Stile
+ ┣ 📜 MainWindow.xaml  # Hauptfenster der Anwendung
+ ┣ 📜 README           # Diese Datei 😉
+ ┣ 📜 CHANGELOG        # Vollständiger Changelog
+ ┗ 📜 LICENSE          # MIT-Lizenz*
+```
+
+---
+
+## **📜 Changelog**
+### **Version 1.0.0 – Erste stabile Version**
+- 🚀 **MVP mit SQLite & WinUI 3 fertiggestellt**
+- 🆕 **Such- & Filterfunktionen für Flashcards**
+- 🎨 **Dunkelmodus & modernes Windows 11 Design**
+- 🛠 **Bugfixes & Performance-Optimierungen**
+
+**[📜 Vollständiger Changelog](./CHANGELOG)**
+
+---
+
+## **📢 Roadmap**
+📌 **Geplante Features für zukünftige Versionen:**
+- 📊 **Erweiterte Statistik- & Analysefunktionen**
+- ☁ **Cloud-Synchronisation (OneDrive, Google Drive)**
+- 🎯 **Lernmodus mit Tageszielen & Erinnerungen**
+- 📱 **Mobile App-Version für Android & iOS**
+
+Falls du Vorschläge hast, erstelle gerne ein **Issue** oder einen **Pull Request**! 🤝
+
+---
+
+## **📝 Lizenz**
+📜 **MIT-Lizenz** – freie Nutzung, Veränderung & Verbreitung erlaubt.  
+[🔗 Lizenzdetails anzeigen](./LICENSE)
+
+---
+
+## **🤝 Pull Request**
+💡 **Hast du Ideen für Verbesserungen?**  
+Wir freuen uns über **Pull Requests & Feature-Ideen**! 🎉  
+
+### **💻 So trägst du zum Projekt bei:**
+1️⃣ **Forke das Repository**  
+2️⃣ **Erstelle einen Branch für deine Änderung** (`git checkout -b feature-meine-idee`)  
+3️⃣ **Führe deine Änderungen durch & committe sie** (`git commit -m "Feature hinzugefügt"`)  
+4️⃣ **Erstelle einen Pull Request** und wir schauen uns deine Änderung an! 🚀  
+
+🙌 Vielen Dank für deinen Support!
+
+---
+
+**📧 Kontakt & Support**  
+Falls du Fragen hast oder auf Probleme stößt, erstelle bitte ein **GitHub Issue**.
+
+🚀 Viel Spaß mit **NeoCardium** & viel Erfolg beim Lernen! 💡🎯
