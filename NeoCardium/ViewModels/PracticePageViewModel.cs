@@ -9,6 +9,10 @@ using NeoCardium.Helpers;
 using NeoCardium.Models;
 using NeoCardium.Database;
 using System.Windows.Input;
+using Microsoft.UI;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 
 namespace NeoCardium.ViewModels
 {
@@ -27,6 +31,8 @@ namespace NeoCardium.ViewModels
         private ObservableCollection<FlashcardAnswer> _answerOptions = new();
         public string AnswerButtonText => IsAnswerRevealed ? "Nächste Frage" : "Antwort anzeigen";
         private bool _isAnswerRevealed;
+        private PracticeMode _selectedMode;
+        private PracticeModeOption _selectedModeOption = new();
         private string _feedbackMessage = string.Empty;
         private bool _isFeedbackVisible = false;
         private bool _isSessionActive;
@@ -70,7 +76,7 @@ namespace NeoCardium.ViewModels
                 }
                 
                 IsFeedbackVisible = false;
-                LoadNextQuestion();
+                await LoadNextQuestionAsync();
             });
             _random = new Random((int)DateTime.Now.Ticks);
             _usedQuestions = new HashSet<int>();
@@ -131,14 +137,12 @@ namespace NeoCardium.ViewModels
             new PracticeModeOption { Mode = PracticeMode.Flashcard, ModeName = "Karteikarten-Modus" }
         };
 
-        private PracticeMode _selectedMode;
         public PracticeMode SelectedMode
         {
             get => _selectedMode;
             set => SetProperty(ref _selectedMode, value);
         }
 
-        private PracticeModeOption _selectedModeOption;
         public PracticeModeOption SelectedModeOption
         {
             get => _selectedModeOption;
@@ -166,7 +170,26 @@ namespace NeoCardium.ViewModels
         [RelayCommand]
         public void LoadCategories()
         {
-            Categories = new ObservableCollection<Category>(DatabaseHelper.GetCategories());
+            try
+            {
+                var categories = DatabaseHelper.GetCategories();
+                if (categories == null || categories.Count == 0)
+                {
+                    ExceptionHelper.LogError("Keine Kategorien gefunden!");
+                    FeedbackMessage = "⚠ Keine Kategorien verfügbar!";
+                    IsFeedbackVisible = true;
+                }
+                else
+                {
+                    Categories = new ObservableCollection<Category>(categories);
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHelper.LogError("Fehler beim Laden der Kategorien.", ex);
+                FeedbackMessage = "⚠ Fehler beim Laden der Kategorien!";
+                IsFeedbackVisible = true;
+            }
         }
 
         public bool IsSessionActive
@@ -177,44 +200,9 @@ namespace NeoCardium.ViewModels
 
 
         [RelayCommand]
-        public void StartPractice(Category? selectedCategory)
+        public async Task StartPracticeAsync(Category? selectedCategory)
         {
-            if (selectedCategory == null)
-            {
-                FeedbackMessage = "⚠ Fehler: Keine Kategorie ausgewählt!";
-                IsFeedbackVisible = true;
-                return;
-            }
-
-            Console.WriteLine($"StartPractice: Lade Fragen für Kategorie ID {selectedCategory.Id}");
-            var flashcards = DatabaseHelper.GetFlashcardsByCategory(selectedCategory.Id);
-
-            if (flashcards == null || flashcards.Count == 0)
-            {
-                FeedbackMessage = "⚠ Diese Kategorie enthält keine Fragen.";
-                IsFeedbackVisible = true;
-                Console.WriteLine("Keine Karteikarten gefunden!");
-                return;
-            }
-
-            Console.WriteLine($"{flashcards.Count} Fragen geladen.");
-            Questions = new ObservableCollection<Flashcard>(flashcards);
-            _usedQuestions.Clear();
-
-            if (SelectedMode == PracticeMode.MultipleChoice)
-            {
-                LoadNextQuestion();  // Starte Multiple-Choice-Modus
-            }
-            else if (SelectedMode == PracticeMode.Flashcard)
-            {
-                LoadFlashcard();  // Methode für Flashcard-Modus (kommt später)
-            }
-        }
-
-        [RelayCommand]
-        public void TogglePracticeSession(Category selectedCategory)
-        {
-            if (!IsSessionActive)
+            try
             {
                 if (selectedCategory == null)
                 {
@@ -223,15 +211,67 @@ namespace NeoCardium.ViewModels
                     return;
                 }
 
-                StartPractice(selectedCategory);
+                Console.WriteLine($"StartPractice: Lade Fragen für Kategorie ID {selectedCategory.Id}");
+                var flashcards = DatabaseHelper.GetFlashcardsByCategory(selectedCategory.Id);
+
+                if (flashcards == null || flashcards.Count == 0)
+                {
+                    ExceptionHelper.LogError($"Keine Karteikarten in Kategorie {selectedCategory.Id} gefunden!");
+                    FeedbackMessage = "⚠ Diese Kategorie enthält keine Fragen.";
+                    IsFeedbackVisible = true;
+                    return;
+                }
+
+                Questions = new ObservableCollection<Flashcard>(flashcards);
+                _usedQuestions.Clear();
+
+                if (SelectedMode == PracticeMode.MultipleChoice)
+                {
+                    await LoadNextQuestionAsync();  // ✅ Jetzt korrekt async!
+                }
+                else if (SelectedMode == PracticeMode.Flashcard)
+                {
+                    LoadFlashcard();  // Bleibt synchron, weil keine UI-Animation notwendig ist.
+                }
             }
-            else
+            catch (Exception ex)
             {
-                ResetPracticeSession();
+                ExceptionHelper.LogError("Fehler in StartPracticeAsync().", ex);
+                FeedbackMessage = "⚠ Fehler beim Starten der Übung!";
+                IsFeedbackVisible = true;
             }
-            IsSessionActive = !IsSessionActive;
         }
 
+
+        [RelayCommand]
+        public async Task TogglePracticeSessionAsync(Category? selectedCategory)
+        {
+            try
+            {
+                if (!IsSessionActive)
+                {
+                    if (selectedCategory == null)
+                    {
+                        FeedbackMessage = "⚠ Fehler: Keine Kategorie ausgewählt!";
+                        IsFeedbackVisible = true;
+                        return;
+                    }
+
+                    await StartPracticeAsync(selectedCategory); // ✅ Jetzt korrekt awaiten!
+                }
+                else
+                {
+                    ResetPracticeSession();
+                }
+                IsSessionActive = !IsSessionActive;
+            }
+            catch (Exception ex)
+            {
+                ExceptionHelper.LogError("Fehler in TogglePracticeSessionAsync().", ex);
+                FeedbackMessage = "⚠ Fehler beim Umschalten der Übung!";
+                IsFeedbackVisible = true;
+            }
+        }
 
         private void ResetPracticeSession()
         {
@@ -244,43 +284,57 @@ namespace NeoCardium.ViewModels
         }
 
         [RelayCommand]
-        public void LoadNextQuestion()
+        public async Task LoadNextQuestionAsync()
         {
-            if (Questions.Count == 0 || _usedQuestions.Count == Questions.Count)
+            try
             {
-                if (_incorrectQuestions.Count > 0)
+                if (Questions.Count == 0 || _usedQuestions.Count >= Questions.Count)
                 {
-                    Questions = new ObservableCollection<Flashcard>(_incorrectQuestions);
-                    _usedQuestions.Clear();
-                    _incorrectQuestions.Clear();
-                    FeedbackMessage = "🔁 Wiederholung der falsch beantworteten Fragen.";
-                    IsFeedbackVisible = true;
+                    if (_incorrectQuestions.Count > 0)
+                    {
+                        Questions = new ObservableCollection<Flashcard>(_incorrectQuestions);
+                        _usedQuestions.Clear();
+                        _incorrectQuestions.Clear();
+                        FeedbackMessage = "🔁 Wiederholung der falsch beantworteten Fragen.";
+                        IsFeedbackVisible = true;
+                    }
+                    else
+                    {
+                        await ShowFinalStatisticsAsync(); // ✅ Richtige Nutzung von async/await!
+                        return;
+                    }
                 }
-                else
+
+                Flashcard nextQuestion;
+                int attempts = 0;
+                do
                 {
-                    ShowFinalStatistics();
-                    return;
-                }
+                    nextQuestion = Questions[_random.Next(Questions.Count)];
+                    attempts++;
+
+                    if (attempts > 100) // 🛑 Notausgang für Endlosschleife
+                    {
+                        ExceptionHelper.LogError("⚠ Endlosschleife in LoadNextQuestionAsync erkannt!");
+                        FeedbackMessage = "⚠ Fehler beim Laden der nächsten Frage!";
+                        IsFeedbackVisible = true;
+                        return;
+                    }
+
+                } while (_usedQuestions.Contains(nextQuestion.Id));
+
+                _usedQuestions.Add(nextQuestion.Id);
+                CurrentQuestion = nextQuestion;
+
+                LoadAnswers();
             }
-
-            Console.WriteLine($"Nächste Frage: {CurrentQuestion.Question} (ID: {CurrentQuestion.Id})");
-            Flashcard nextQuestion;
-            do
+            catch (Exception ex)
             {
-                nextQuestion = Questions[_random.Next(Questions.Count)];
-            } while (_usedQuestions.Contains(nextQuestion.Id));
-
-            _usedQuestions.Add(nextQuestion.Id);
-            CurrentQuestion = new Flashcard
-            {
-                Id = nextQuestion.Id,
-                Question = nextQuestion.Question,
-                Answer = nextQuestion.Answer,
-                CorrectCount = nextQuestion.CorrectCount,
-                IncorrectCount = nextQuestion.IncorrectCount
-            };
-            LoadAnswers();
+                ExceptionHelper.LogError("❌ Fehler in LoadNextQuestionAsync().", ex);
+                FeedbackMessage = "⚠ Fehler beim Laden der nächsten Frage!";
+                IsFeedbackVisible = true;
+            }
         }
+
         public void LoadFlashcard()
         {
             if (Questions.Count == 0)
@@ -335,33 +389,98 @@ namespace NeoCardium.ViewModels
 
         private void LoadAnswers()
         {
-            if (CurrentQuestion == null)
+            try
             {
-                Console.WriteLine("⚠ Fehler: Keine aktuelle Frage gesetzt.");
-                return;
+                if (CurrentQuestion == null)
+                {
+                    ExceptionHelper.LogError("LoadAnswers wurde aufgerufen, aber CurrentQuestion ist null!");
+                    FeedbackMessage = "⚠ Fehler: Keine aktuelle Frage gesetzt!";
+                    IsFeedbackVisible = true;
+                    return;
+                }
+
+                var answers = DatabaseHelper.GetRandomAnswersForFlashcard(CurrentQuestion.Id);
+                if (answers == null || answers.Count == 0)
+                {
+                    ExceptionHelper.LogError($"Keine Antworten für Frage {CurrentQuestion.Id} gefunden!");
+                    FeedbackMessage = "⚠ Keine Antworten verfügbar!";
+                    IsFeedbackVisible = true;
+                    AnswerOptions = new ObservableCollection<FlashcardAnswer>(); // Setzt eine leere Liste
+                }
+                else
+                {
+                    AnswerOptions = new ObservableCollection<FlashcardAnswer>(answers);
+                }
             }
-
-            Console.WriteLine($"Lade Antworten für Frage ID: {CurrentQuestion.Id}");
-            var answers = DatabaseHelper.GetRandomAnswersForFlashcard(CurrentQuestion.Id);
-
-            if (answers == null)
+            catch (Exception ex)
             {
-                Console.WriteLine("⚠ Fehler: Nicht genügend Antworten verfügbar!");
-                return;
-            }
-
-            AnswerOptions = new ObservableCollection<FlashcardAnswer>(answers);
-            while (answers.Count < 4)
-            {
-                answers.Add(new FlashcardAnswer { AnswerText = "N/A", IsCorrect = false });
+                ExceptionHelper.LogError("Fehler in LoadAnswers().", ex);
+                FeedbackMessage = "⚠ Fehler beim Laden der Antworten!";
+                IsFeedbackVisible = true;
+                AnswerOptions = new ObservableCollection<FlashcardAnswer>(); // Sicherer Fallback
             }
         }
 
-
-        private void ShowFinalStatistics()
+        private async Task ShowFinalStatisticsAsync()
         {
-            FeedbackMessage = $"📊 Sitzung beendet! Richtig: {_totalCorrect}, Falsch: {_totalIncorrect}";
-            IsFeedbackVisible = true;
+            try
+            {
+                if (App._mainWindow?.Content is not FrameworkElement rootElement)
+                {
+                    ExceptionHelper.LogError("Fehler: Kein gültiges XAML-Root-Element für Dialog gefunden!");
+                    return;
+                }
+
+                var dialog = new ContentDialog
+                {
+                    Title = "📊 Deine Lernstatistik",
+                    PrimaryButtonText = "🔄 Erneut üben",
+                    CloseButtonText = "🏁 Beenden",
+                    DefaultButton = ContentDialogButton.Close,
+                    XamlRoot = rootElement.XamlRoot, // Korrekte Zuweisung für WinUI3!
+                    Content = new StackPanel
+                    {
+                        Spacing = 15,
+                        Children =
+                {
+                    new TextBlock
+                    {
+                        Text = $"🏆 Richtige Antworten: {_totalCorrect}",
+                        FontSize = 22,
+                        Foreground = new SolidColorBrush(Colors.Green),
+                        HorizontalAlignment = HorizontalAlignment.Center
+                    },
+                    new TextBlock
+                    {
+                        Text = $"❌ Falsche Antworten: {_totalIncorrect}",
+                        FontSize = 22,
+                        Foreground = new SolidColorBrush(Colors.Red),
+                        HorizontalAlignment = HorizontalAlignment.Center
+                    },
+                    new ProgressBar
+                    {
+                        Minimum = 0,
+                        Maximum = Math.Max(1, _totalCorrect + _totalIncorrect), // Verhindert Division durch 0!
+                        Value = _totalCorrect,
+                        Width = 250,
+                        Foreground = new SolidColorBrush(Colors.Blue),
+                        HorizontalAlignment = HorizontalAlignment.Center
+                    }
+                }
+                    }
+                };
+
+                var result = await dialog.ShowAsync();
+                if (result == ContentDialogResult.Primary)
+                {
+                    ResetPracticeSession();
+                    await StartPracticeAsync(SelectedCategory);
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHelper.LogError("Fehler beim Anzeigen der Statistik.", ex);
+            }
         }
     }
 }

@@ -80,6 +80,16 @@ namespace NeoCardium.Views
             }
         }
 
+        private void CategoryListView_RightTapped(object sender, RightTappedRoutedEventArgs e)
+        {
+            if (e.OriginalSource is FrameworkElement element && element.DataContext is Category category)
+            {
+                // Kontextmenü manuell öffnen
+                var flyoutBase = FlyoutBase.GetAttachedFlyout(element);
+                flyoutBase?.ShowAt(element);
+            }
+        }
+
         private void OpenContextMenu_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button button)

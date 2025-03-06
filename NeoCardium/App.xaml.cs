@@ -33,7 +33,7 @@ namespace NeoCardium
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
         /// </summary>
-        private MainWindow? _mainWindow;
+        public static MainWindow? _mainWindow { get; private set; }
 
         public App()
         {
@@ -42,11 +42,7 @@ namespace NeoCardium
             this.InitializeComponent();
 
             // Globales Fehlerhandling
-            UnhandledException += async (sender, e) =>
-            {
-                await ExceptionHelper.ShowErrorDialogAsync("Ein unerwarteter Fehler ist aufgetreten.", e.Exception);
-                e.Handled = true; // Verhindert Absturz & Debugger-Break
-            };
+            ExceptionHelper.RegisterGlobalExceptionHandling();
         }
 
         /// <summary>
@@ -55,12 +51,11 @@ namespace NeoCardium
         /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
-            if (_mainWindow == null) // Verhindert doppeltes Erstellen
+            if(_mainWindow == null) // Verhindert doppeltes erstellen
             {
                 _mainWindow = new MainWindow();
                 _mainWindow.Activate();
             }
         }
-
     }
 }

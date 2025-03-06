@@ -129,19 +129,24 @@ namespace NeoCardium.Views
 
         private async void DeleteFlashcard_Click(object sender, RoutedEventArgs e)
         {
-            Debug.WriteLine("DeleteFlashcard_Click");
             try
             {
-                var menuItem = (MenuFlyoutItem)sender;
-                var flashcard = (Flashcard)menuItem.CommandParameter;
-                if (flashcard == null) return;
+                var selectedFlashcards = FlashcardsListView.SelectedItems.Cast<Flashcard>().ToList();
 
-                Debug.WriteLine($"Lösche Flashcard mit ID: {flashcard.Id}");
+                if (!selectedFlashcards.Any())
+                {
+                    Debug.WriteLine("Kein Flashcard ausgewählt.");
+                    return;
+                }
+
+                string message = selectedFlashcards.Count == 1
+                    ? $"Möchtest du die Karteikarte '{selectedFlashcards[0].Question}' wirklich löschen?"
+                    : $"Möchtest du die {selectedFlashcards.Count} ausgewählten Karteikarten wirklich löschen?";
 
                 var confirmDialog = new ContentDialog
                 {
-                    Title = "Karteikarte löschen",
-                    Content = $"Möchtest du die Karteikarte '{flashcard.Question}' wirklich löschen?",
+                    Title = "Karteikarten löschen",
+                    Content = message,
                     PrimaryButtonText = "Löschen",
                     CloseButtonText = "Abbrechen",
                     XamlRoot = this.XamlRoot
@@ -150,39 +155,38 @@ namespace NeoCardium.Views
                 var result = await confirmDialog.ShowAsync();
                 if (result == ContentDialogResult.Primary)
                 {
-                    bool success = DatabaseHelper.DeleteFlashcard(flashcard.Id);
-                    if (!success)
+                    foreach (var flashcard in selectedFlashcards)
                     {
-                        await ExceptionHelper.ShowErrorDialogAsync("Karteikarte konnte nicht gelöscht werden.", null, this.XamlRoot);
-                        return;
+                        DatabaseHelper.DeleteFlashcard(flashcard.Id);
                     }
 
-                    FlashcardsListView.ItemsSource = null; // Reset ItemsSource
                     await LoadFlashcards(_selectedCategoryId);
                 }
             }
             catch (Exception ex)
             {
-                await ExceptionHelper.ShowErrorDialogAsync("Fehler beim Löschen der Karteikarte.", ex, this.XamlRoot);
+                await ExceptionHelper.ShowErrorDialogAsync("Fehler beim Löschen der Karteikarten.", ex, this.XamlRoot);
             }
         }
 
         private void FlashcardsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (FlashcardsListView == null)
+            if (FlashcardsListView == null || FlashcardsListView.SelectedItem == null)
             {
-                Debug.WriteLine("FlashcardsListView ist NULL!");
+                Debug.WriteLine("Keine Flashcard ausgewählt.");
                 return;
+            }
+
+            if (KeyboardHelper.IsModifierKeyPressed()) // Verwende den Helper!
+            {
+                Debug.WriteLine("Modifier-Taste erkannt – Bearbeitung wird nicht geöffnet.");
+                return; // Keine Bearbeitung, wenn Modifier gedrückt ist
             }
 
             if (FlashcardsListView.SelectedItem is Flashcard selectedFlashcard)
             {
-                Debug.WriteLine($"Ausgewählte Karteikarte: {selectedFlashcard.Question}");
+                Debug.WriteLine($"Bearbeite Flashcard: {selectedFlashcard.Question}");
                 EditFlashcard_Click(sender, new RoutedEventArgs());
-            }
-            else
-            {
-                Debug.WriteLine("Kein Flashcard ausgewählt oder null!");
             }
         }
 
@@ -190,13 +194,12 @@ namespace NeoCardium.Views
         {
             if (e.OriginalSource is FrameworkElement element && element.DataContext is Flashcard flashcard)
             {
-                // Erstellt ein neues Flyout
-                MenuFlyout flyout = new MenuFlyout();
+                var selectedFlashcards = FlashcardsListView.SelectedItems.Cast<Flashcard>().ToList();
 
-                // Erstellt den Lösch-Button
+                MenuFlyout flyout = new MenuFlyout();
                 MenuFlyoutItem deleteItem = new MenuFlyoutItem
                 {
-                    Text = "Löschen",
+                    Text = selectedFlashcards.Count > 1 ? "Ausgewählte löschen" : "Löschen",
                     CommandParameter = flashcard
                 };
                 deleteItem.Click += DeleteFlashcard_Click;
@@ -205,6 +208,5 @@ namespace NeoCardium.Views
                 flyout.ShowAt(element, new FlyoutShowOptions { Position = e.GetPosition(element) });
             }
         }
-
     }
 }

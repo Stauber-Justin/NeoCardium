@@ -5,10 +5,12 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     
-    x:Name="PracticePageView"
-    x:Class="NeoCardium.Views.PracticePage"
+    xmlns:models="using:NeoCardium.Models"
     xmlns:vm="using:NeoCardium.ViewModels"
-    xmlns:models="using:NeoCardium.Models">
+    xmlns:converter="using:NeoCardium.Converters"
+    
+    x:Class="NeoCardium.Views.PracticePage"
+    x:Name="PracticePageView">
 
     <Page.DataContext>
         <vm:PracticePageViewModel />
@@ -22,7 +24,7 @@
 
         <Grid Grid.Row="0">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
-    IsHitTestVisible="{Binding IsSessionActive, Converter={StaticResource BooleanToVisibilityInvertedConverter}}">
+    IsHitTestVisible="{Binding IsSessionActive, Converter={StaticResource BooleanInverterConverter}}">
                 <!-- Kategorie Auswahl (nur anzeigen, wenn keine Session läuft) -->
                 <ComboBox Grid.Row="0" Margin="10" 
                   ItemsSource="{Binding Categories}"

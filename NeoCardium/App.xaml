@@ -3,10 +3,11 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     
-    x:Class="NeoCardium.App"
     xmlns:local="using:NeoCardium"
     xmlns:helps="using:NeoCardium.Helpers"
-    xmlns:converters="using:NeoCardium.Converters">
+    xmlns:converters="using:NeoCardium.Converters"
+    
+    x:Class="NeoCardium.App">
 
     <Application.Resources>
         <ResourceDictionary>
@@ -15,12 +16,13 @@
                 <!-- Other merged dictionaries here -->
             </ResourceDictionary.MergedDictionaries>
             <!-- Other app resources here -->
-            <helps:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-            <helps:BooleanToVisibilityConverter x:Key="BooleanToVisibilityInvertedConverter"/>
-            <helps:BooleanToStartCancelConverter x:Key="BooleanToStartCancelConverter"/>
-            <helps:AnswerIndexToGridColumnConverter x:Key="AnswerIndexToGridColumnConverter"/>
+            <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityInvertedConverter"/>
+            <converters:BooleanToStartCancelConverter x:Key="BooleanToStartCancelConverter"/>
+            <converters:AnswerIndexToGridColumnConverter x:Key="AnswerIndexToGridColumnConverter"/>
             <converters:EnumToVisibilityConverter x:Key="EnumToVisibilityConverter"/>
             <converters:EnumToVisibilityConverter x:Key="BooleanToAnswerTextConverter"/>
+            <converters:BooleanInverterConverter x:Key="BooleanInverterConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -6,43 +6,64 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     
-    x:Class="NeoCardium.Views.MainPage"
     xmlns:local="using:NeoCardium.Views"
     xmlns:models="using:NeoCardium.Models"
+    
+    x:Class="NeoCardium.Views.MainPage"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
+    <!-- Kontextmenü für Kategorien -->
+    <Page.Resources>
+        <MenuFlyout x:Key="CategoryContextFlyout">
+            <MenuFlyoutItem Text="Bearbeiten"
+                            Click="EditCategory_Click"
+                            CommandParameter="{Binding}" />
+            <MenuFlyoutItem Text="Löschen"
+                            Click="DeleteCategory_Click"
+                            CommandParameter="{Binding}" />
+        </MenuFlyout>
+    </Page.Resources>
+
     <Grid Padding="20">
-        <StackPanel>
-            <TextBlock Text="Deine Kategorien" 
-                       FontSize="24" 
-                       FontWeight="Bold"
-                       Margin="0,0,0,10"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Titel bleibt oben -->
+            <RowDefinition Height="*"/>
+            <!-- Liste füllt den Platz -->
+            <RowDefinition Height="Auto"/>
+            <!-- Button unten -->
+        </Grid.RowDefinitions>
 
+        <!-- Titel -->
+        <TextBlock Text="Deine Kategorien"
+                   FontSize="24"
+                   FontWeight="Bold"
+                   Margin="0,0,0,10"/>
+
+        <!-- ListView mit Rechtsklick-Menü -->
+        <ScrollViewer Grid.Row="1">
             <ListView x:Name="CategoryListView"
-          SelectionMode="Single"
-          ItemsSource="{x:Bind Categories, Mode=OneWay}"
-          Height="300"
-          IsItemClickEnabled="True"
-          ItemClick="CategoryListView_ItemClick">
-
+                      SelectionMode="Single"
+                      ItemsSource="{x:Bind Categories, Mode=OneWay}"
+                      IsItemClickEnabled="True"
+                      IsRightTapEnabled="True"
+                      ItemClick="CategoryListView_ItemClick"
+                      RightTapped="CategoryListView_RightTapped">
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="models:Category">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{x:Bind CategoryName}" FontSize="18" Margin="10,0"/>
-                            <Button Content="⋮" HorizontalAlignment="Right" Click="OpenContextMenu_Click">
-                                <Button.Flyout>
-                                    <MenuFlyout>
-                                        <MenuFlyoutItem Text="Bearbeiten" Click="EditCategory_Click"/>
-                                        <MenuFlyoutItem Text="Löschen" Click="DeleteCategory_Click"/>
-                                    </MenuFlyout>
-                                </Button.Flyout>
-                            </Button>
-                        </StackPanel>
+                        <ListViewItem ContextFlyout="{StaticResource CategoryContextFlyout}">
+                            <TextBlock Text="{x:Bind CategoryName}" FontSize="18" Margin="10,5"/>
+                        </ListViewItem>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
+        </ScrollViewer>
 
-            <Button Content="Neue Kategorie erstellen" Click="AddCategory_Click" Margin="0,10,0,0"/>
-        </StackPanel>
+        <!-- Button unten -->
+        <Button Grid.Row="2"
+                Content="Neue Kategorie erstellen"
+                Click="AddCategory_Click"
+                HorizontalAlignment="Center"
+                Margin="0,10,0,0"/>
     </Grid>
 </Page>

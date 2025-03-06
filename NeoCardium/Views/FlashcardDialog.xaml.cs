@@ -1,9 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-
 using System;
 using System.Collections.ObjectModel;
-using System.Threading.Tasks;
 using NeoCardium.Models;
 using NeoCardium.Helpers;
 
@@ -42,12 +40,12 @@ namespace NeoCardium.Views
                 }
                 else
                 {
-                    ExceptionHelper.ShowError(ErrorInfoBar, "Antwort darf nicht leer sein.");
+                    ExceptionHelper.ShowErrorInfoBar(ErrorInfoBar, "Antwort darf nicht leer sein.");
                 }
             }
             catch (Exception ex)
             {
-                ExceptionHelper.ShowError(ErrorInfoBar, $"Fehler beim Hinzufügen der Antwort: {ex.Message}");
+                ExceptionHelper.ShowErrorInfoBar(ErrorInfoBar, "Fehler beim Hinzufügen der Antwort.", ex);
             }
         }
 
@@ -61,12 +59,12 @@ namespace NeoCardium.Views
                 }
                 else
                 {
-                    ExceptionHelper.ShowError(ErrorInfoBar, "Bitte wähle eine Antwort zum Löschen aus.");
+                    ExceptionHelper.ShowErrorInfoBar(ErrorInfoBar, "Bitte wähle eine Antwort zum Löschen aus.");
                 }
             }
             catch (Exception ex)
             {
-                ExceptionHelper.ShowError(ErrorInfoBar, $"Fehler beim Entfernen der Antwort: {ex.Message}");
+                ExceptionHelper.ShowErrorInfoBar(ErrorInfoBar, "Fehler beim Entfernen der Antwort.", ex);
             }
         }
 
@@ -76,20 +74,20 @@ namespace NeoCardium.Views
             {
                 if (string.IsNullOrWhiteSpace(Question))
                 {
-                    ExceptionHelper.ShowError(ErrorInfoBar, "Die Frage darf nicht leer sein.");
+                    ExceptionHelper.ShowErrorInfoBar(ErrorInfoBar, "Die Frage darf nicht leer sein.");
                     args.Cancel = true;
                     return;
                 }
 
                 if (Answers.Count == 0)
                 {
-                    ExceptionHelper.ShowError(ErrorInfoBar, "Mindestens eine Antwort muss eingegeben werden.");
+                    ExceptionHelper.ShowErrorInfoBar(ErrorInfoBar, "Mindestens eine Antwort muss eingegeben werden.");
                     args.Cancel = true;
                 }
             }
             catch (Exception ex)
             {
-                ExceptionHelper.ShowError(ErrorInfoBar, $"Fehler beim Überprüfen der Eingabe: {ex.Message}");
+                ExceptionHelper.ShowErrorInfoBar(ErrorInfoBar, "Fehler beim Überprüfen der Eingabe.", ex);
                 args.Cancel = true;
             }
         }

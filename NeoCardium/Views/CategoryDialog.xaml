@@ -6,9 +6,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     
-    x:Class="NeoCardium.Views.CategoryDialog"
     xmlns:local="using:NeoCardium.Views"
-    
+
+    x:Class="NeoCardium.Views.CategoryDialog"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     Title="Neue Kategorie erstellen"
     PrimaryButtonText="Speichern"

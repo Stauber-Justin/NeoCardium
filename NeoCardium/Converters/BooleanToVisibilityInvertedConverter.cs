@@ -2,26 +2,24 @@
 using Microsoft.UI.Xaml.Data;
 using System;
 
-namespace NeoCardium.Helpers
+namespace NeoCardium.Converters
 {
-    public class BooleanToVisibilityConverter : IValueConverter
+    public class BooleanToVisibilityInvertedConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
             if (value is bool boolValue)
             {
-                // Standardverhalten ohne Parameter (wie vorher)
-                bool invert = parameter is string str && bool.TryParse(str, out bool paramValue) && paramValue;
-                return (boolValue ^ invert) ? Visibility.Visible : Visibility.Collapsed;
+                return boolValue ? Visibility.Collapsed : Visibility.Visible;
             }
-            return Visibility.Collapsed;
+            return Visibility.Visible;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
             if (value is Visibility visibility)
             {
-                return visibility == Visibility.Visible;
+                return visibility != Visibility.Visible;
             }
             return false;
         }

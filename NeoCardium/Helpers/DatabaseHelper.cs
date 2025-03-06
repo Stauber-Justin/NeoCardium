@@ -5,7 +5,6 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Reflection;
 
 using NeoCardium.Models;
 using NeoCardium.Helpers;
@@ -33,8 +32,17 @@ namespace NeoCardium.Database
             {
                 EnsureDatabasePathExists();
 
+                bool databaseExists = File.Exists(_dbPath);
                 using var db = GetConnection();
                 db.Open();
+
+                if (databaseExists)
+                {
+                    ExceptionHelper.LogError("[INFO] Datenbank existiert bereits. Keine Neuinitialisierung notwendig.");
+                    return;
+                }
+
+                ExceptionHelper.LogError("[INFO] Erstelle neue Datenbank...");
 
                 string createCategoriesTable = @"CREATE TABLE IF NOT EXISTS Categories (
                                     Id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -62,11 +70,11 @@ namespace NeoCardium.Database
                 using var cardAnswerTable = new SqliteCommand(createFlashcardAnswersTable, db);
                 cardAnswerTable.ExecuteNonQuery();
 
-                Console.WriteLine($"[SUCCESS] Datenbank erfolgreich initialisiert: {_dbPath}");
+                ExceptionHelper.LogError($"[SUCCESS] Datenbank erfolgreich initialisiert: {_dbPath}");
             }
             catch (Exception ex)
             {
-                _ = ExceptionHelper.ShowErrorDialogAsync("Fehler bei der Initialisierung der Datenbank.", ex).ConfigureAwait(false);
+                ExceptionHelper.LogError("Fehler bei der Initialisierung der Datenbank.", ex);
             }
         }
 
@@ -77,11 +85,12 @@ namespace NeoCardium.Database
                 if (!Directory.Exists(_dataFolder))
                 {
                     Directory.CreateDirectory(_dataFolder);
-                    Console.WriteLine($"[INFO] Data-Verzeichnis erstellt: {_dataFolder}");
+                    ExceptionHelper.LogError($"[INFO] Data-Verzeichnis erstellt: {_dataFolder}");
                 }
             }
             catch (Exception ex)
             {
+                ExceptionHelper.LogError("Fehler beim Erstellen des Datenbankverzeichnisses.", ex);
                 throw new InvalidOperationException("Fehler beim Erstellen des Datenbankverzeichnisses.", ex);
             }
         }
@@ -89,7 +98,6 @@ namespace NeoCardium.Database
         public static ObservableCollection<Category> GetCategories()
         {
             ObservableCollection<Category> categories = new();
-
             try
             {
                 using var db = GetConnection();
@@ -106,7 +114,7 @@ namespace NeoCardium.Database
             }
             catch (Exception ex)
             {
-                _ = ExceptionHelper.ShowErrorDialogAsync("Fehler beim Abrufen der Kategorien.", ex).ConfigureAwait(false);
+                ExceptionHelper.LogError("Fehler beim Abrufen der Kategorien.", ex);
             }
             return categories;
         }
@@ -119,7 +127,7 @@ namespace NeoCardium.Database
                 using var db = GetConnection();
                 db.Open();
 
-                string query = "SELECT * FROM Flashcards WHERE CategoryId = @CategoryId";
+                const string query = "SELECT Id, CategoryId, Question, CorrectCount, IncorrectCount FROM Flashcards WHERE CategoryId = @CategoryId";
                 using var command = new SqliteCommand(query, db);
                 command.Parameters.AddWithValue("@CategoryId", categoryId);
                 using var reader = command.ExecuteReader();
@@ -138,9 +146,9 @@ namespace NeoCardium.Database
             }
             catch (Exception ex)
             {
-                _ = ExceptionHelper.ShowErrorDialogAsync("Fehler beim Laden der Karteikarten.", ex).ConfigureAwait(false);
+                ExceptionHelper.LogError("Fehler beim Laden der Karteikarten.", ex);
             }
-            return flashcards;
+            return flashcards; // Immer eine leere Liste zurückgeben, niemals `null`
         }
 
         public static string GetCorrectAnswerForFlashcard(int flashcardId)
@@ -150,23 +158,19 @@ namespace NeoCardium.Database
                 using var db = GetConnection();
                 db.Open();
 
-                string query = "SELECT AnswerText FROM FlashcardAnswers WHERE FlashcardId = @FlashcardId AND IsCorrect = 1 LIMIT 1";
+                const string query = "SELECT AnswerText FROM FlashcardAnswers WHERE FlashcardId = @FlashcardId AND IsCorrect = 1 LIMIT 1";
                 using var command = new SqliteCommand(query, db);
                 command.Parameters.AddWithValue("@FlashcardId", flashcardId);
                 using var reader = command.ExecuteReader();
 
-                if (reader.Read())
-                {
-                    return reader.GetString(0); // ✅ Gibt die richtige Antwort zurück
-                }
+                return reader.Read() ? reader.GetString(0) : "Keine Antwort gefunden"; // Kein `null`, sondern verständliche Ausgabe
             }
             catch (Exception ex)
             {
-                _ = ExceptionHelper.ShowErrorDialogAsync("Fehler beim Abrufen der richtigen Antwort.", ex).ConfigureAwait(false);
+                ExceptionHelper.LogError("Fehler beim Abrufen der richtigen Antwort.", ex);
+                return "Fehler beim Abrufen der Antwort";
             }
-            return "Antwort nicht gefunden"; // Falls keine Antwort existiert
         }
-
 
         public static List<FlashcardAnswer> GetAnswersByFlashcard(int flashcardId)
         {
@@ -176,7 +180,7 @@ namespace NeoCardium.Database
                 using var db = GetConnection();
                 db.Open();
 
-                string query = "SELECT * FROM FlashcardAnswers WHERE FlashcardId = @FlashcardId";
+                const string query = "SELECT AnswerId, FlashcardId, AnswerText, IsCorrect FROM FlashcardAnswers WHERE FlashcardId = @FlashcardId";
                 using var command = new SqliteCommand(query, db);
                 command.Parameters.AddWithValue("@FlashcardId", flashcardId);
                 using var reader = command.ExecuteReader();
@@ -194,9 +198,9 @@ namespace NeoCardium.Database
             }
             catch (Exception ex)
             {
-                _ = ExceptionHelper.ShowErrorDialogAsync("Fehler beim Abrufen der Antworten.", ex).ConfigureAwait(false);
+                ExceptionHelper.LogError("Fehler beim Abrufen der Antworten.", ex);
             }
-            return answers;
+            return answers; // Immer eine leere Liste zurückgeben, niemals `null`
         }
 
         public static List<FlashcardAnswer> GetRandomAnswersForFlashcard(int flashcardId)
@@ -254,14 +258,16 @@ namespace NeoCardium.Database
                 command.Parameters.AddWithValue("@CategoryName", categoryName);
 
                 int affectedRows = command.ExecuteNonQuery();
-                Debug.WriteLine($"AddCategory: Betroffene Zeilen = {affectedRows}");
-
-                return affectedRows > 0; // Falls Zeilen eingefügt wurden, true zurückgeben
+                return affectedRows > 0;
+            }
+            catch (SqliteException sqlEx) when (sqlEx.SqliteErrorCode == 19) // UNIQUE Constraint
+            {
+                ExceptionHelper.LogError($"[WARNUNG] Kategorie existiert bereits: {categoryName}");
+                return false;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"SQLite Error in AddCategory: {ex.Message}");
-                _ = ExceptionHelper.ShowErrorDialogAsync("Fehler beim Erstellen der Kategorie.", ex).ConfigureAwait(false);
+                ExceptionHelper.LogError("Fehler beim Erstellen der Kategorie.", ex);
                 return false;
             }
         }
@@ -281,7 +287,7 @@ namespace NeoCardium.Database
             }
             catch (Exception ex)
             {
-                _ = ExceptionHelper.ShowErrorDialogAsync("Fehler beim Löschen der Kategorie.", ex).ConfigureAwait(false);
+                ExceptionHelper.LogError("Fehler beim Löschen der Kategorie.", ex);
                 return false;
             }
         }
@@ -317,17 +323,16 @@ namespace NeoCardium.Database
                 using var db = GetConnection();
                 db.Open();
 
-                string query = "SELECT COUNT(*) FROM Categories WHERE CategoryName = @CategoryName";
+                const string query = "SELECT 1 FROM Categories WHERE CategoryName = @CategoryName LIMIT 1";
                 using var command = new SqliteCommand(query, db);
                 command.Parameters.AddWithValue("@CategoryName", categoryName);
 
-                int count = Convert.ToInt32(command.ExecuteScalar());
-                return count > 0;
+                return command.ExecuteScalar() != null; // Direkt prüfen, ob eine Zeile existiert
             }
             catch (Exception ex)
             {
-                _ = ExceptionHelper.ShowErrorDialogAsync("CategoryExists()", ex).ConfigureAwait(false);
-                return false;
+                ExceptionHelper.LogError("Fehler in CategoryExists().", ex);
+                return false; // Standardwert statt `null`
             }
         }
 

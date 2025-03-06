@@ -6,9 +6,10 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     
-    x:Class="NeoCardium.Views.FlashcardsPage"
     xmlns:local="using:NeoCardium.Views"
     xmlns:models="using:NeoCardium.Models"
+    
+    x:Class="NeoCardium.Views.FlashcardsPage"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <!-- Hier kommen globale Ressourcen rein -->

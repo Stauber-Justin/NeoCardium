@@ -6,8 +6,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     
-    x:Class="NeoCardium.Views.SettingsPage"
     xmlns:local="using:NeoCardium.Views"
+    
+    x:Class="NeoCardium.Views.SettingsPage"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
