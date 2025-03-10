@@ -36,6 +36,8 @@ namespace NeoCardium.ViewModels
         private string _feedbackMessage = string.Empty;
         private bool _isFeedbackVisible = false;
         private bool _isSessionActive;
+        private bool _isRetryModeEnabled;
+        private bool _isFinalStatisticsVisible;
 
         public ICommand CheckAnswerAsync { get; }
 
@@ -53,8 +55,10 @@ namespace NeoCardium.ViewModels
 
                 if (selectedAnswer.IsCorrect)
                 {
-                    _totalCorrect++;
-                    _incorrectQuestions.Remove(CurrentQuestion);
+                    if(_isRetryModeEnabled == false)
+                        _totalCorrect++;
+                    if(_incorrectQuestions.Contains(CurrentQuestion))
+                        _incorrectQuestions.Remove(CurrentQuestion);
                     CurrentQuestion.UpdateCorrectCount();
                     DatabaseHelper.UpdateFlashcardStats(CurrentQuestion.Id, true);
                     FeedbackMessage = "✅ Richtig!";
@@ -65,16 +69,14 @@ namespace NeoCardium.ViewModels
                 {
                     _totalIncorrect++;
                     if (!_incorrectQuestions.Contains(CurrentQuestion))
-                    {
                         _incorrectQuestions.Add(CurrentQuestion);
-                    }
                     CurrentQuestion.UpdateIncorrectCount();
                     DatabaseHelper.UpdateFlashcardStats(CurrentQuestion.Id, false);
                     FeedbackMessage = $"⚠Falsch⚠\n Die richtige Antwort lautet :  {AnswerOptions.First(a => a.IsCorrect).AnswerText}";
                     IsFeedbackVisible = true;
                     await Task.Delay(2000);
                 }
-                
+
                 IsFeedbackVisible = false;
                 await LoadNextQuestionAsync();
             });
@@ -155,6 +157,18 @@ namespace NeoCardium.ViewModels
             }
         }
 
+        public int TotalCorrect
+        {
+            get => _totalCorrect;
+            set => SetProperty(ref _totalCorrect, value);
+        }
+
+        public int TotalIncorrect
+        {
+            get => _totalIncorrect;
+            set => SetProperty(ref _totalIncorrect, value);
+        }
+
         public string FeedbackMessage
         {
             get => _feedbackMessage;
@@ -166,6 +180,31 @@ namespace NeoCardium.ViewModels
             get => _isFeedbackVisible;
             set => SetProperty(ref _isFeedbackVisible, value);
         }
+
+        public bool IsSessionActive
+        {
+            get => _isSessionActive;
+            set
+            {
+                if (SetProperty(ref _isSessionActive, value))
+                {
+                    OnPropertyChanged(nameof(IsCategorySelectionVisible));
+                }
+            }
+        }
+
+        public bool IsFinalStatisticsVisible
+        {
+            get => _isFinalStatisticsVisible;
+            set
+            {
+                if (SetProperty(ref _isFinalStatisticsVisible, value))
+                {
+                    OnPropertyChanged(nameof(IsCategorySelectionVisible));
+                }
+            }
+        }
+        public bool IsCategorySelectionVisible => !IsSessionActive && !IsFinalStatisticsVisible;
 
         [RelayCommand]
         public void LoadCategories()
@@ -192,13 +231,6 @@ namespace NeoCardium.ViewModels
             }
         }
 
-        public bool IsSessionActive
-        {
-            get => _isSessionActive;
-            set => SetProperty(ref _isSessionActive, value);
-        }
-
-
         [RelayCommand]
         public async Task StartPracticeAsync(Category? selectedCategory)
         {
@@ -210,6 +242,8 @@ namespace NeoCardium.ViewModels
                     IsFeedbackVisible = true;
                     return;
                 }
+                _totalCorrect = 0;
+                _totalIncorrect = 0;
 
                 Console.WriteLine($"StartPractice: Lade Fragen für Kategorie ID {selectedCategory.Id}");
                 var flashcards = DatabaseHelper.GetFlashcardsByCategory(selectedCategory.Id);
@@ -284,6 +318,27 @@ namespace NeoCardium.ViewModels
         }
 
         [RelayCommand]
+        public async Task RestartSessionAsync()
+        {
+            IsFinalStatisticsVisible = false;  // Statistik ausblenden
+            IsSessionActive = true;  // Session wieder aktiv setzen
+
+            // UI-Update
+            OnPropertyChanged(nameof(IsFinalStatisticsVisible));
+            OnPropertyChanged(nameof(IsSessionActive));
+
+            await StartPracticeAsync(SelectedCategory);  // Gleiche Kategorie neu starten
+        }
+
+        [RelayCommand]
+        public void CloseSession()
+        {
+            IsFinalStatisticsVisible = false;
+            IsSessionActive = false;
+            ResetPracticeSession();
+        }
+
+        [RelayCommand]
         public async Task LoadNextQuestionAsync()
         {
             try
@@ -292,6 +347,7 @@ namespace NeoCardium.ViewModels
                 {
                     if (_incorrectQuestions.Count > 0)
                     {
+                        _isRetryModeEnabled = true;
                         Questions = new ObservableCollection<Flashcard>(_incorrectQuestions);
                         _usedQuestions.Clear();
                         _incorrectQuestions.Clear();
@@ -300,7 +356,8 @@ namespace NeoCardium.ViewModels
                     }
                     else
                     {
-                        await ShowFinalStatisticsAsync(); // ✅ Richtige Nutzung von async/await!
+                        _isRetryModeEnabled = false;
+                        await ShowFinalStatisticsAsync();
                         return;
                     }
                 }
@@ -425,57 +482,17 @@ namespace NeoCardium.ViewModels
         {
             try
             {
-                if (App._mainWindow?.Content is not FrameworkElement rootElement)
-                {
-                    ExceptionHelper.LogError("Fehler: Kein gültiges XAML-Root-Element für Dialog gefunden!");
-                    return;
-                }
+                // Session beenden
+                IsSessionActive = false;
+                IsFinalStatisticsVisible = true;
 
-                var dialog = new ContentDialog
-                {
-                    Title = "📊 Deine Lernstatistik",
-                    PrimaryButtonText = "🔄 Erneut üben",
-                    CloseButtonText = "🏁 Beenden",
-                    DefaultButton = ContentDialogButton.Close,
-                    XamlRoot = rootElement.XamlRoot, // Korrekte Zuweisung für WinUI3!
-                    Content = new StackPanel
-                    {
-                        Spacing = 15,
-                        Children =
-                {
-                    new TextBlock
-                    {
-                        Text = $"🏆 Richtige Antworten: {_totalCorrect}",
-                        FontSize = 22,
-                        Foreground = new SolidColorBrush(Colors.Green),
-                        HorizontalAlignment = HorizontalAlignment.Center
-                    },
-                    new TextBlock
-                    {
-                        Text = $"❌ Falsche Antworten: {_totalIncorrect}",
-                        FontSize = 22,
-                        Foreground = new SolidColorBrush(Colors.Red),
-                        HorizontalAlignment = HorizontalAlignment.Center
-                    },
-                    new ProgressBar
-                    {
-                        Minimum = 0,
-                        Maximum = Math.Max(1, _totalCorrect + _totalIncorrect), // Verhindert Division durch 0!
-                        Value = _totalCorrect,
-                        Width = 250,
-                        Foreground = new SolidColorBrush(Colors.Blue),
-                        HorizontalAlignment = HorizontalAlignment.Center
-                    }
-                }
-                    }
-                };
+                // UI-Update
+                OnPropertyChanged(nameof(TotalIncorrect));
+                OnPropertyChanged(nameof(TotalCorrect));
+                OnPropertyChanged(nameof(IsFinalStatisticsVisible));
+                OnPropertyChanged(nameof(IsSessionActive));
 
-                var result = await dialog.ShowAsync();
-                if (result == ContentDialogResult.Primary)
-                {
-                    ResetPracticeSession();
-                    await StartPracticeAsync(SelectedCategory);
-                }
+                await Task.Delay(1000); // Smooth transition
             }
             catch (Exception ex)
             {

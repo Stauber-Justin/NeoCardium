@@ -17,6 +17,7 @@ using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Shapes;
 using System.Runtime.Versioning;
 using NeoCardium.Helpers;
+using NeoCardium.Database;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.

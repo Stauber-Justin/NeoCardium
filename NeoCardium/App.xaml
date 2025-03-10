@@ -23,6 +23,7 @@
             <converters:EnumToVisibilityConverter x:Key="EnumToVisibilityConverter"/>
             <converters:EnumToVisibilityConverter x:Key="BooleanToAnswerTextConverter"/>
             <converters:BooleanInverterConverter x:Key="BooleanInverterConverter"/>
+            <converters:MultiBooleanToVisibilityConverter x:Key="MultiBooleanToVisibilityConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

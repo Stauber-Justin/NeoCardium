@@ -20,6 +20,7 @@ using NeoCardium.Models;
 using NeoCardium.Database;
 using NeoCardium.Helpers;
 using System.Diagnostics;
+using Windows.ApplicationModel.VoiceCommands;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -37,10 +38,14 @@ namespace NeoCardium.Views
         public MainPage()
         {
             this.InitializeComponent();
+            this.Loaded += MainPage_Loaded;
+        }
+
+        private void MainPage_Loaded(object sender, RoutedEventArgs e)
+        {
             DatabaseHelper.InitializeDatabase(); // Erstellt die Datenbank, falls sie nicht existiert
             _ = LoadCategories();
         }
-
         private async Task LoadCategories()
         {
             try

@@ -5,10 +5,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     
-    xmlns:models="using:NeoCardium.Models"
     xmlns:vm="using:NeoCardium.ViewModels"
-    xmlns:converter="using:NeoCardium.Converters"
-    
     x:Class="NeoCardium.Views.PracticePage"
     x:Name="PracticePageView">
 
@@ -16,104 +13,91 @@
         <vm:PracticePageViewModel />
     </Page.DataContext>
 
-    <Grid Background="#121212" Padding="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-
-        <Grid Grid.Row="0">
+    <!-- Die Root-Grid hält alle UI-Elemente -->
+    <Grid Background="{ThemeResource LayerFillColorAltBrush}" Padding="20">
+        <!-- Dieser Grid enthält den "normalen" Übungsbereich -->
+        <Grid>
+            <!-- Kategorie- und Modus-Auswahl -->
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
-    IsHitTestVisible="{Binding IsSessionActive, Converter={StaticResource BooleanInverterConverter}}">
-                <!-- Kategorie Auswahl (nur anzeigen, wenn keine Session läuft) -->
-                <ComboBox Grid.Row="0" Margin="10" 
-                  ItemsSource="{Binding Categories}"
-                  SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
-                  DisplayMemberPath="CategoryName"
-                  PlaceholderText="Kategorie wählen"
-                  HorizontalAlignment="Center"
-                  VerticalAlignment="Center"
-                  Width="300"
-                  Visibility="{Binding IsSessionActive, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=True}">
-
-                </ComboBox>
-
-
-                <!-- Modus Auswahl (nur anzeigen, wenn keine Session läuft) -->
-                <ComboBox Grid.Row="1" Margin="0"
-          ItemsSource="{Binding AvailableModes}"
-          SelectedItem="{Binding SelectedModeOption, Mode=TwoWay}"
-          DisplayMemberPath="ModeName"
-          PlaceholderText="Lernmodus wählen"
-          HorizontalAlignment="Center"
-          VerticalAlignment="Center"
-          Width="300"
-          Visibility="{Binding IsSessionActive, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=True}">
-                </ComboBox>
+                        Visibility="{Binding IsCategorySelectionVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <!-- Kategorie Auswahl -->
+                <ComboBox Margin="10" Width="300"
+                          ItemsSource="{Binding Categories}"
+                          SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
+                          DisplayMemberPath="CategoryName"
+                          PlaceholderText="Kategorie wählen"
+                          HorizontalAlignment="Center"/>
+                <!-- Modus Auswahl -->
+                <ComboBox Margin="0" Width="300"
+                          ItemsSource="{Binding AvailableModes}"
+                          SelectedItem="{Binding SelectedModeOption, Mode=TwoWay}"
+                          DisplayMemberPath="ModeName"
+                          PlaceholderText="Lernmodus wählen"
+                          HorizontalAlignment="Center"/>
             </StackPanel>
-        </Grid>
 
-        <!-- Fokusmodus (nur anzeigen, wenn eine Session läuft) -->
-        <Grid Grid.Row="0" Margin="20" Visibility="{Binding IsSessionActive, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+            <!-- Übungsbereich (Frage, Antwortoptionen, etc.) -->
+            <Grid Margin="20" 
+                  Visibility="{Binding IsSessionActive, Converter={StaticResource BooleanToVisibilityConverter}}"
+                  HorizontalAlignment="Center">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-            <!-- Frage anzeigen -->
-            <Border Padding="20" Background="#1E1E1E" CornerRadius="10" Margin="0,0,0,40">
-                <TextBlock Text="{Binding CurrentQuestion.Question}"
+                <!-- 🎯 Frage anzeigen -->
+                <Border Padding="20" Background="#1E1E1E" CornerRadius="10" Margin="0,0,0,40" Width="600">
+                    <TextBlock Text="{Binding CurrentQuestion.Question}"
                            FontSize="24" FontWeight="Bold" Foreground="White" TextWrapping="Wrap"
                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Border>
+                </Border>
 
-            <!-- Feedback Nachricht -->
-            <TextBlock Grid.Row="1" Text="{Binding FeedbackMessage}"
+                <!-- ⚠️ Feedback Nachricht -->
+                <TextBlock Grid.Row="1" Text="{Binding FeedbackMessage}"
                        FontSize="20" Foreground="White" 
                        HorizontalAlignment="Center" VerticalAlignment="Center"
                        Visibility="{Binding IsFeedbackVisible, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
-            <!-- Multiple-Choice-Modus -->
-            <Grid Grid.Row="2">
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top"
-                Visibility="{Binding SelectedMode, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=MultipleChoice}">
-                    <ItemsControl ItemsSource="{Binding AnswerOptions}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <VariableSizedWrapGrid MaximumRowsOrColumns="2" Orientation="Horizontal" HorizontalAlignment="Center"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
+                <!-- 🏆 Multiple-Choice-Modus -->
+                <Grid Grid.Row="2">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top" Padding="20"
+                            Visibility="{Binding SelectedMode, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=MultipleChoice}">
 
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Background="#444" CornerRadius="30" Margin="10">
+                        <ItemsControl ItemsSource="{Binding AnswerOptions}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <VariableSizedWrapGrid MaximumRowsOrColumns="2" Orientation="Horizontal" HorizontalAlignment="Center"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
                                     <Button Content="{Binding AnswerText}"
-                                Command="{Binding DataContext.CheckAnswerAsync, ElementName=PracticePageView}"
-                                CommandParameter="{Binding}"
-                                Padding="20,10"
-                                FontSize="18"
-                                Background="#222"
-                                Foreground="White"
-                                BorderBrush="LightBlue"
-                                BorderThickness="2"
-                                Margin="5"
-                                CornerRadius="10"
-                                Width="280"
-                                HorizontalAlignment="Stretch"/>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </Grid>
+                                        Command="{Binding DataContext.CheckAnswerAsync, ElementName=PracticePageView}"
+                                        CommandParameter="{Binding}"
+                                        Padding="20,10"
+                                        Margin="10, 15, 0, 0"
+                                        FontSize="18"
+                                        Background="#292929"
+                                        Foreground="White"
+                                        BorderBrush="LightBlue"
+                                        BorderThickness="2"
+                                        CornerRadius="15"
+                                        HorizontalAlignment="Stretch"
+                                        MinWidth="250"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Grid>
 
-            <!-- Classic-Card-Modus -->
-            <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Top"
-            Visibility="{Binding SelectedMode, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Flashcard}">
+                <!-- 🃏 Flashcard-Modus -->
+                <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Top"
+                        Visibility="{Binding SelectedMode, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Flashcard}">
 
-                <!-- Antwort-Button -->
-                <Button Content="{Binding AnswerButtonText}"
+                    <!-- Antwort-Button -->
+                    <Button Content="{Binding AnswerButtonText}"
                         Command="{Binding RevealAnswerCommand}"
                         Padding="15,5"
                         FontSize="18"
@@ -121,29 +105,64 @@
                         HorizontalAlignment="Center"
                         Margin="20"/>
 
+                    <!-- Antwort-Anzeige -->
+                    <Border Background="#1E1E1E" CornerRadius="10" Padding="20" Margin="20,10,20,0"
+                        Visibility="{Binding IsAnswerRevealed, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="{Binding CurrentQuestion.Answer}"
+                               FontSize="22" FontWeight="Bold" Foreground="White" 
+                               TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                    </Border>
+                </StackPanel>
+            </Grid>
 
-                <!-- Antwort-Anzeige -->
-                <Border Background="#1E1E1E" CornerRadius="10" Padding="20" Margin="20,10,20,0"
-            Visibility="{Binding IsAnswerRevealed, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <TextBlock Text="{Binding CurrentQuestion.Answer}"
-                   FontSize="22" FontWeight="Bold" Foreground="White" 
-                   TextWrapping="Wrap" HorizontalAlignment="Center"/>
-                </Border>
-
-            </StackPanel>
-
-
-
+            <!-- Start/Abbrechen Button -->
+            <Button Content="{Binding IsSessionActive, Converter={StaticResource BooleanToStartCancelConverter}}"
+                    Command="{Binding TogglePracticeSessionCommand}"
+                    CommandParameter="{Binding SelectedCategory}"
+                    HorizontalAlignment="Center"
+                    Visibility="{Binding IsCategorySelectionVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                    Margin="10"
+                    Padding="15,5"
+                    FontSize="18"
+                    Width="150"/>
         </Grid>
 
-        <!-- Start/Abbrechen Button -->
-        <Button Grid.Row="1" Content="{Binding IsSessionActive, Converter={StaticResource BooleanToStartCancelConverter}}"
-                Command="{Binding TogglePracticeSessionCommand}"
-                CommandParameter="{Binding SelectedCategory}"
+        <!-- Statistik-Panel als Overlay. Es wird zentriert angezeigt, auch wenn der Übungsbereich ausgeblendet ist -->
+        <Border Background="{ThemeResource LayerFillColorAltBrush}"
+                CornerRadius="12" Padding="20" Width="350"
+                Visibility="{Binding IsFinalStatisticsVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                 HorizontalAlignment="Center"
-                Margin="10"
-                Padding="15,5"
-                FontSize="18"
-                Width="150"/>
+                VerticalAlignment="Center"
+                BorderThickness="1" BorderBrush="#606060">
+            <StackPanel HorizontalAlignment="Center" Spacing="15">
+                <TextBlock Text="📊 Deine Lernstatistik" 
+                           FontSize="20" FontWeight="Bold" Foreground="White" 
+                           HorizontalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="🏆 Richtige Antworten:" Foreground="LightGreen" FontSize="18"/>
+                    <TextBlock Text="{Binding TotalCorrect}" Foreground="LightGreen" FontSize="18" FontWeight="Bold" Margin="5,0,0,0"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="❌ Falsche Antworten:" Foreground="OrangeRed" FontSize="18"/>
+                    <TextBlock Text="{Binding TotalIncorrect}" Foreground="OrangeRed" FontSize="18" FontWeight="Bold" Margin="5,0,0,0"/>
+                </StackPanel>
+                <ProgressBar Minimum="0" 
+                             Maximum="{Binding TotalAnswered}" 
+                             Value="{Binding TotalCorrect}" 
+                             Width="250"
+                             Foreground="LightBlue"
+                             CornerRadius="5"
+                             HorizontalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+                    <Button Content="🔄 Erneut üben" 
+                            Command="{Binding RestartSessionCommand}" 
+                            Style="{StaticResource AccentButtonStyle}"/>
+                    <Button Content="🏁 Beenden" 
+                            Command="{Binding CloseSessionCommand}" 
+                            Background="HotPink" Foreground="White"
+                            CornerRadius="8"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
     </Grid>
 </Page>
