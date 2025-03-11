@@ -148,8 +148,12 @@ namespace NeoCardium.Helpers
         /// </summary>
         public static void LogError(string message, Exception? ex = null, [CallerMemberName] string caller = "")
         {
-            if (!Debugger.IsAttached) return; // Kein Debug-Log in Release-Builds
+            // TODO: In Release-Builds könntest du Logging deaktivieren, je nach Anforderung(Einstellung).
+            if (!Debugger.IsAttached)
+                return;
 
+            try
+            {
             EnsureLogDirectoryExists(); // Ordner wird erstellt, falls er nicht existiert
 
             string logEntry = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | Methode: {caller} | Fehler: {message}\n";
@@ -161,6 +165,12 @@ namespace NeoCardium.Helpers
 
             File.AppendAllText(LogFilePath, logEntry);
             Debug.WriteLine(logEntry);
+            }
+            catch (Exception loggingEx)
+            {
+                // Fallback: Schreibe in die Debug-Konsole, wenn das Loggen fehlschlägt.
+                Debug.WriteLine($"Fehler beim Loggen: {loggingEx.Message}");
+            }
         }
     }
 }
