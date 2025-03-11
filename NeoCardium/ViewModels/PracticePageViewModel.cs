@@ -169,6 +169,8 @@ namespace NeoCardium.ViewModels
             set => SetProperty(ref _totalIncorrect, value);
         }
 
+        public int TotalAnswered => TotalCorrect + TotalIncorrect;
+
         public string FeedbackMessage
         {
             get => _feedbackMessage;
@@ -201,10 +203,12 @@ namespace NeoCardium.ViewModels
                 if (SetProperty(ref _isFinalStatisticsVisible, value))
                 {
                     OnPropertyChanged(nameof(IsCategorySelectionVisible));
+                    OnPropertyChanged(nameof(IsStartCancelButtonVisible));
                 }
             }
         }
         public bool IsCategorySelectionVisible => !IsSessionActive && !IsFinalStatisticsVisible;
+        public bool IsStartCancelButtonVisible => !IsFinalStatisticsVisible;
 
         [RelayCommand]
         public void LoadCategories()
@@ -242,8 +246,12 @@ namespace NeoCardium.ViewModels
                     IsFeedbackVisible = true;
                     return;
                 }
+
+                // Start session in clean state
                 _totalCorrect = 0;
                 _totalIncorrect = 0;
+                _incorrectQuestions.Clear();
+                _isRetryModeEnabled = false;
 
                 Console.WriteLine($"StartPractice: Lade Fragen für Kategorie ID {selectedCategory.Id}");
                 var flashcards = DatabaseHelper.GetFlashcardsByCategory(selectedCategory.Id);
@@ -489,6 +497,7 @@ namespace NeoCardium.ViewModels
                 // UI-Update
                 OnPropertyChanged(nameof(TotalIncorrect));
                 OnPropertyChanged(nameof(TotalCorrect));
+                OnPropertyChanged(nameof(TotalAnswered));
                 OnPropertyChanged(nameof(IsFinalStatisticsVisible));
                 OnPropertyChanged(nameof(IsSessionActive));
 

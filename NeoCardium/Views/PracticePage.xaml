@@ -17,8 +17,16 @@
     <Grid Background="{ThemeResource LayerFillColorAltBrush}" Padding="20">
         <!-- Dieser Grid enthält den "normalen" Übungsbereich -->
         <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <!-- Titel bleibt oben -->
+                <RowDefinition Height="*"/>
+                <!-- Liste füllt den Platz -->
+                <RowDefinition Height="Auto"/>
+                <!-- Button unten -->
+            </Grid.RowDefinitions>
             <!-- Kategorie- und Modus-Auswahl -->
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="1"
                         Visibility="{Binding IsCategorySelectionVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <!-- Kategorie Auswahl -->
                 <ComboBox Margin="10" Width="300"
@@ -74,18 +82,18 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Button Content="{Binding AnswerText}"
-                                        Command="{Binding DataContext.CheckAnswerAsync, ElementName=PracticePageView}"
-                                        CommandParameter="{Binding}"
-                                        Padding="20,10"
-                                        Margin="10, 15, 0, 0"
-                                        FontSize="18"
-                                        Background="#292929"
-                                        Foreground="White"
-                                        BorderBrush="LightBlue"
-                                        BorderThickness="2"
-                                        CornerRadius="15"
-                                        HorizontalAlignment="Stretch"
-                                        MinWidth="250"/>
+                                            Command="{Binding DataContext.CheckAnswerAsync, ElementName=PracticePageView}"
+                                            CommandParameter="{Binding}"
+                                            Padding="20,10"
+                                            Margin="10, 15, 0, 0"
+                                            FontSize="18"
+                                            Background="#292929"
+                                            Foreground="White"
+                                            BorderBrush="LightBlue"
+                                            BorderThickness="2"
+                                            CornerRadius="15"
+                                            HorizontalAlignment="Stretch"
+                                            MinWidth="250"/>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
@@ -98,19 +106,19 @@
 
                     <!-- Antwort-Button -->
                     <Button Content="{Binding AnswerButtonText}"
-                        Command="{Binding RevealAnswerCommand}"
-                        Padding="15,5"
-                        FontSize="18"
-                        Width="250"
-                        HorizontalAlignment="Center"
-                        Margin="20"/>
+                            Command="{Binding RevealAnswerCommand}"
+                            Padding="15,5"
+                            FontSize="18"
+                            Width="250"
+                            HorizontalAlignment="Center"
+                            Margin="20"/>
 
                     <!-- Antwort-Anzeige -->
                     <Border Background="#1E1E1E" CornerRadius="10" Padding="20" Margin="20,10,20,0"
                         Visibility="{Binding IsAnswerRevealed, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <TextBlock Text="{Binding CurrentQuestion.Answer}"
-                               FontSize="22" FontWeight="Bold" Foreground="White" 
-                               TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                                   FontSize="22" FontWeight="Bold" Foreground="White" 
+                                   TextWrapping="Wrap" HorizontalAlignment="Center"/>
                     </Border>
                 </StackPanel>
             </Grid>
@@ -120,11 +128,13 @@
                     Command="{Binding TogglePracticeSessionCommand}"
                     CommandParameter="{Binding SelectedCategory}"
                     HorizontalAlignment="Center"
-                    Visibility="{Binding IsCategorySelectionVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                    Grid.Row="2"
+                    Visibility="{Binding IsFinalStatisticsVisible, Converter={StaticResource BooleanInverterConverter}}"
                     Margin="10"
                     Padding="15,5"
                     FontSize="18"
                     Width="150"/>
+
         </Grid>
 
         <!-- Statistik-Panel als Overlay. Es wird zentriert angezeigt, auch wenn der Übungsbereich ausgeblendet ist -->
