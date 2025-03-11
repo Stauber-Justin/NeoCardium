@@ -11,9 +11,14 @@ namespace NeoCardium.Helpers
     public static class ExceptionHelper
     {
         // Speicherort: Gleiche Struktur wie die Datenbank (neben der EXE)
-        private static readonly string AppFolder = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName)
+        /*private static readonly string AppFolder = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName)
             ?? throw new InvalidOperationException("Konnte den Speicherort des Programms nicht bestimmen.");
 
+        private static readonly string LogDirectory = Path.Combine(AppFolder, "Logs");
+        private static readonly string LogFilePath = Path.Combine(LogDirectory, "error.log");*/
+
+        // Verwende AppContext.BaseDirectory anstelle von Process.GetCurrentProcess().MainModule?.FileName
+        private static readonly string AppFolder = AppContext.BaseDirectory;
         private static readonly string LogDirectory = Path.Combine(AppFolder, "Logs");
         private static readonly string LogFilePath = Path.Combine(LogDirectory, "error.log");
 
@@ -56,7 +61,7 @@ namespace NeoCardium.Helpers
             finally
             {
                 _isErrorDialogOpen = false;
-                LogError(message, ex, caller);
+                await LogErrorAsync(message, ex, caller);
             }
         }
 
@@ -105,6 +110,37 @@ namespace NeoCardium.Helpers
                 ShowErrorDialogAsync("Ein nicht behandelter asynchroner Fehler ist aufgetreten.", args.Exception).Wait();
                 args.SetObserved();
             };
+        }
+
+        /// <summary>
+        /// Asynchrones Logging – schreibt Logeinträge in die Log-Datei.
+        /// Diese Methode fängt Fehler ab, sodass Log-Vorgänge die App nicht blockieren.
+        /// </summary>
+        public static async Task LogErrorAsync(string message, Exception? ex = null, [CallerMemberName] string caller = "")
+        {
+            // TODO: In Release-Builds könntest du Logging deaktivieren, je nach Anforderung(Einstellung).
+            if (!Debugger.IsAttached)
+                return;
+
+            try
+            {
+                EnsureLogDirectoryExists();
+
+                string logEntry = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | Methode: {caller} | Fehler: {message}\n";
+                if (ex != null)
+                {
+                    logEntry += $"Exception: {ex.GetType()} | Message: {ex.Message}\nStackTrace: {ex.StackTrace}\n";
+                }
+                logEntry += "------------------------------------------\n";
+
+                await File.AppendAllTextAsync(LogFilePath, logEntry);
+                Debug.WriteLine(logEntry);
+            }
+            catch (Exception loggingEx)
+            {
+                // Fallback: Schreibe in die Debug-Konsole, wenn das Loggen fehlschlägt.
+                Debug.WriteLine($"Fehler beim asynchronen Loggen: {loggingEx.Message}");
+            }
         }
 
         /// <summary>

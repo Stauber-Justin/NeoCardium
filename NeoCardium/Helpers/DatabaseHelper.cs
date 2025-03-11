@@ -11,15 +11,38 @@ using NeoCardium.Helpers;
 
 namespace NeoCardium.Database
 {
-
     public static class DatabaseHelper
     {
-        // Pfad zur Datenbank im lokalen Anwendungsdatenverzeichnis
-        private static readonly string _appFolder = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName)
-            ?? throw new InvalidOperationException("Konnte den Speicherort des Programms nicht bestimmen.");
+        // Prüft, ob ein Debugger angehängt ist
+        private static readonly bool _isDebuggerAttached = Debugger.IsAttached;
+        // Der Datenbankpfad wird je nach Debug-Status gesetzt
+        private static readonly string _dbPath;
+        // Wird nur im Release/ohne Debugger genutzt
+        private static readonly string? _dataFolder;
 
-        private static readonly string _dataFolder = Path.Combine(_appFolder, "Data");
-        private static readonly string _dbPath = Path.Combine(_dataFolder, "NeoCardium.db");
+        // Statischer Konstruktor: Initialisierung der Pfade je nach Debug-Status
+        static DatabaseHelper()
+        {
+            if (_isDebuggerAttached)
+            {
+                // Kein definierter Pfad – die Datenbank wird im aktuellen Arbeitsverzeichnis erstellt (z. B. im bin/Debug-Ordner)
+                _dbPath = "NeoCardium.db";
+                _dataFolder = null;
+                ExceptionHelper.LogError("[INFO] Debugger erkannt – verwende den Standard-Datenbankstandort.");
+            }
+            else
+            {
+                string appFolder = AppContext.BaseDirectory
+                    ?? throw new InvalidOperationException("Konnte den Speicherort des Programms nicht bestimmen.");
+                _dataFolder = Path.Combine(appFolder, "Data");
+                if (!Directory.Exists(_dataFolder))
+                {
+                    Directory.CreateDirectory(_dataFolder);
+                    ExceptionHelper.LogError($"[INFO] Data-Verzeichnis erstellt: {_dataFolder}");
+                }
+                _dbPath = Path.Combine(_dataFolder, "NeoCardium.db");
+            }
+        }
 
         private static SqliteConnection GetConnection()
         {
@@ -30,7 +53,11 @@ namespace NeoCardium.Database
         {
             try
             {
-                EnsureDatabasePathExists();
+                // Im Release-Modus sicherstellen, dass das Datenverzeichnis existiert
+                if (!_isDebuggerAttached)
+                {
+                    EnsureDatabasePathExists();
+                }
 
                 bool databaseExists = File.Exists(_dbPath);
                 using var db = GetConnection();
@@ -80,6 +107,11 @@ namespace NeoCardium.Database
 
         private static void EnsureDatabasePathExists()
         {
+            // Falls im Debug-Modus kein spezifisches Verzeichnis verwendet wird, hier abbrechen
+            if (_dataFolder == null)
+            {
+                return;
+            }
             try
             {
                 if (!Directory.Exists(_dataFolder))
