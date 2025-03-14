@@ -1,61 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Page
+    x:Class="NeoCardium.Views.FlashcardsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d"
-    
     xmlns:local="using:NeoCardium.Views"
     xmlns:models="using:NeoCardium.Models"
-    
-    x:Class="NeoCardium.Views.FlashcardsPage"
+    mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <!-- Hier kommen globale Ressourcen rein -->
+    <!-- Global resources -->
     <Page.Resources>
         <MenuFlyout x:Key="FlashcardContextFlyout">
             <MenuFlyoutItem Text="Löschen"
-                        Click="DeleteFlashcard_Click"
-                        CommandParameter="{Binding}" />
+                            Click="DeleteFlashcard_Click"
+                            CommandParameter="{Binding}" />
         </MenuFlyout>
     </Page.Resources>
 
-    <!-- Hier kommt der UI-Code -->
-    <StackPanel Orientation="Vertical" Padding="10">
+    <!-- 
+        Root layout: a Grid with 3 rows 
+          Row 0: Return Button
+          Row 1: "Neue Karteikarte erstellen" Button
+          Row 2: The ListView (fills remaining space and scrolls automatically)
+    -->
+    <Grid Padding="10">
+        <Grid.RowDefinitions>
+            <!-- The first two rows auto-size to their content -->
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <!-- The last row takes the remaining space (star layout) -->
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-        <!-- Button zum Erstellen einer neuen Karteikarte -->
+        <!-- Row 0: Return Button -->
+        <Button x:Name="ReturnButton"
+                Content="⬅ Zurück"
+                Click="ReturnButton_Click"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Margin="0,0,0,10"
+                Grid.Row="0"/>
+
+        <!-- Row 1: "Neue Karteikarte erstellen" Button -->
         <Button x:Name="AddFlashcardButton"
-            Content="Neue Karteikarte erstellen"
-            Click="AddFlashcard_Click"
-            HorizontalAlignment="Center"
-            Margin="0,0,0,10"/>
+                Content="Neue Karteikarte erstellen"
+                Click="AddFlashcard_Click"
+                HorizontalAlignment="Center"
+                Margin="0,0,0,10"
+                Grid.Row="0"/>
 
-        <!-- Liste der Karteikarten -->
+        <!-- Row 2: The ListView. 
+             Because it's in a star row, it will scroll automatically when items exceed the available space. -->
         <ListView x:Name="FlashcardsListView" 
-          ItemsSource="{x:Bind Flashcards}" 
-          IsRightTapEnabled="True"
-          RightTapped="FlashcardsListView_RightTapped"
-          SelectionChanged="FlashcardsListView_SelectionChanged">
+                  ItemsSource="{x:Bind ViewModel.Flashcards}" 
+                  SelectionMode="Extended"
+                  IsRightTapEnabled="True"
+                  RightTapped="FlashcardsListView_RightTapped"
+                  SelectionChanged="FlashcardsListView_SelectionChanged"
+                  Grid.Row="2">
 
-            <!-- Definiere das ItemTemplate für das Layout der Einträge -->
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="models:Flashcard">
-                    <ListViewItem ContextFlyout="{StaticResource FlashcardContextFlyout}">
                     <StackPanel Orientation="Horizontal" Padding="10">
                         <TextBlock Text="{x:Bind Question}" FontWeight="Bold"/>
                         <TextBlock Text=" | " Foreground="Gray"/>
                         <TextBlock Text="{x:Bind CorrectCount}" Foreground="Green"/>
-                        <TextBlock Text="✅ | " Foreground="Gray"/>
+                        <TextBlock Text=" ✅ | " Foreground="Gray"/>
                         <TextBlock Text="{x:Bind IncorrectCount}" Foreground="Red"/>
-                        <TextBlock Text="❌" Foreground="Gray"/>
+                        <TextBlock Text=" ❌" Foreground="Gray"/>
                     </StackPanel>
-                        </ListViewItem>
                 </DataTemplate>
             </ListView.ItemTemplate>
-
         </ListView>
-    </StackPanel>
-
+    </Grid>
 </Page>
-

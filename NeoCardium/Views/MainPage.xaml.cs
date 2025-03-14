@@ -5,13 +5,14 @@ using Microsoft.UI.Xaml.Media;
 using NeoCardium.Models;
 using NeoCardium.ViewModels;
 using NeoCardium.Helpers;
+using NeoCardium.Database;
 using System.Linq;
 using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using System;
+using Microsoft.UI.Xaml.Controls.Primitives;
 
 namespace NeoCardium.Views
 {
@@ -23,12 +24,18 @@ namespace NeoCardium.Views
         {
             this.InitializeComponent();
             DataContext = ViewModel;
-            Loaded += MainPage_Loaded;
+
+            // Create a new Database instance.
+            var database = new Database.Database();
+            database.Initialize();
+
+            DebugUtility.InitializeDebugData();   // Only inserts test data when debugging
+            Loaded += MainPage_Loaded; // Load Categories Async
+
         }
 
         private async void MainPage_Loaded(object sender, RoutedEventArgs e)
         {
-            NeoCardium.Database.DatabaseHelper.InitializeDatabase();
             await ViewModel.LoadCategoriesAsync();
         }
 
@@ -49,8 +56,9 @@ namespace NeoCardium.Views
         {
             if (e.OriginalSource is FrameworkElement fe && GetCategoryFromItem(fe.DataContext) is Category cat)
             {
-                // Falls das getroffene Element noch nicht selektiert ist, wähle es aus
-                if (!CategoryListView.SelectedItems.Cast<object>().Any(item => GetCategoryFromItem(item)?.Id == cat.Id))
+                // If this item is not already selected, select only it.
+                if (!CategoryListView.SelectedItems.Cast<object>()
+                        .Any(item => GetCategoryFromItem(item)?.Id == cat.Id))
                 {
                     CategoryListView.SelectedItems.Clear();
                     CategoryListView.SelectedItems.Add(cat);
@@ -60,7 +68,6 @@ namespace NeoCardium.Views
             int count = CategoryListView.SelectedItems.Count;
             if (count == 0) return;
 
-            // Wähle das passende Flyout basierend auf der Anzahl der selektierten Kategorien
             MenuFlyout flyout = (count == 1) ?
                 (MenuFlyout)Resources["SingleCategoryContextFlyout"] :
                 (MenuFlyout)Resources["MultiCategoryContextFlyout"];
@@ -69,7 +76,7 @@ namespace NeoCardium.Views
             e.Handled = true;
         }
 
-        // Hilfsmethode: Extrahiert aus einem Element das Category-Objekt
+        // Helper to extract the Category from an item (or its container)
         private Category? GetCategoryFromItem(object? item)
         {
             if (item is Category cat)
@@ -79,26 +86,7 @@ namespace NeoCardium.Views
             return null;
         }
 
-        // Gemeinsamer Bestätigungsdialog für das Löschen (DRY)
-        private async Task<ContentDialogResult> ShowDeleteConfirmationDialogAsync(IList<Category> categories)
-        {
-            string message = categories.Count == 1
-                ? $"Möchtest du die Kategorie '{categories[0].CategoryName}' wirklich löschen?"
-                : $"Möchtest du die {categories.Count} ausgewählten Kategorien wirklich löschen?";
-
-            var confirmDialog = new ContentDialog
-            {
-                Title = "Kategorien löschen",
-                Content = message,
-                PrimaryButtonText = "Löschen",
-                CloseButtonText = "Abbrechen",
-                XamlRoot = this.XamlRoot
-            };
-
-            return await confirmDialog.ShowAsync();
-        }
-
-        // Single-Menu "Löschen" – verwendet den gemeinsamen ConfirmDialog
+        // Single delete using shared confirmation dialog
         private async void DeleteCategory_Click(object sender, RoutedEventArgs e)
         {
             if (CategoryListView.SelectedItems.Count == 1)
@@ -107,7 +95,8 @@ namespace NeoCardium.Views
                 if (cat != null)
                 {
                     var list = new List<Category> { cat };
-                    var result = await ShowDeleteConfirmationDialogAsync(list);
+                    var result = await ConfirmationDialogHelper.ShowDeleteConfirmationDialogAsync(
+                        list, "die Kategorie", "Kategorien", c => c.CategoryName, this.XamlRoot);
                     if (result == ContentDialogResult.Primary)
                     {
                         ViewModel.DeleteCategoryCommand.Execute(cat);
@@ -116,7 +105,7 @@ namespace NeoCardium.Views
             }
         }
 
-        // Multi-Menu "Auswahl löschen" – verwendet ebenfalls den gemeinsamen ConfirmDialog
+        // Multi delete using shared confirmation dialog
         private async void DeleteSelectedCategories_Click(object sender, RoutedEventArgs e)
         {
             var selectedCategories = CategoryListView.SelectedItems
@@ -129,14 +118,15 @@ namespace NeoCardium.Views
             if (selectedCategories.Count == 0)
                 return;
 
-            var result = await ShowDeleteConfirmationDialogAsync(selectedCategories);
+            var result = await ConfirmationDialogHelper.ShowDeleteConfirmationDialogAsync(
+                selectedCategories, "die Kategorie", "Kategorien", c => c.CategoryName, this.XamlRoot);
             if (result == ContentDialogResult.Primary)
             {
                 ViewModel.DeleteSelectedCategoriesCommand.Execute(selectedCategories);
             }
         }
 
-        // Multi-Menu "Extract (Placeholder)"
+        // Multi-menu "Extract (Placeholder)"
         private void ExtractSelectedCategories_Click(object sender, RoutedEventArgs e)
         {
             var selectedCategories = CategoryListView.SelectedItems
@@ -149,19 +139,18 @@ namespace NeoCardium.Views
             ViewModel.ExtractSelectedCategoriesCommand.Execute(selectedCategories);
         }
 
-        // Für das Hinzufügen einer neuen Kategorie
         private async void AddCategory_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new CategoryDialog { XamlRoot = this.XamlRoot };
             var result = await dialog.ShowAsync();
             if (result == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(dialog.EnteredCategoryName))
             {
-                if (NeoCardium.Database.DatabaseHelper.CategoryExists(dialog.EnteredCategoryName))
+                if (DatabaseHelper.Instance.CategoryExists(dialog.EnteredCategoryName))
                 {
                     await ExceptionHelper.ShowErrorDialogAsync("Diese Kategorie existiert bereits.", null, this.XamlRoot);
                     return;
                 }
-                bool success = NeoCardium.Database.DatabaseHelper.AddCategory(dialog.EnteredCategoryName);
+                bool success = DatabaseHelper.Instance.AddCategory(dialog.EnteredCategoryName);
                 if (!success)
                 {
                     await ExceptionHelper.ShowErrorDialogAsync("Kategorie konnte nicht gespeichert werden.", null, this.XamlRoot);
@@ -173,7 +162,7 @@ namespace NeoCardium.Views
             }
         }
 
-        // Single-Menu "Bearbeiten" – navigiert zur FlashcardsPage (wie beim normalen Klick)
+        // Single-menu "Bearbeiten" navigates like an item click.
         private void EditCategory_Click(object sender, RoutedEventArgs e)
         {
             if (CategoryListView.SelectedItems.Count == 1)
