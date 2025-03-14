@@ -32,7 +32,7 @@ namespace NeoCardium.ViewModels
         public async Task LoadFlashcardsAsync(int categoryId)
         {
             SelectedCategoryId = categoryId;
-            var flashcards = DatabaseHelper.GetFlashcardsByCategory(categoryId);
+            var flashcards = DatabaseHelper.Instance.GetFlashcardsByCategory(categoryId);
             Flashcards.Clear();
             foreach (var card in flashcards)
             {
@@ -45,7 +45,7 @@ namespace NeoCardium.ViewModels
         {
             if (flashcard == null)
                 return;
-            DatabaseHelper.DeleteFlashcard(flashcard.Id);
+            DatabaseHelper.Instance.DeleteFlashcard(flashcard.Id);
             await LoadFlashcardsAsync(SelectedCategoryId);
         }
 
@@ -55,7 +55,7 @@ namespace NeoCardium.ViewModels
                 return;
             foreach (var card in flashcards.ToList())
             {
-                DatabaseHelper.DeleteFlashcard(card.Id);
+                DatabaseHelper.Instance.DeleteFlashcard(card.Id);
             }
             await LoadFlashcardsAsync(SelectedCategoryId);
         }

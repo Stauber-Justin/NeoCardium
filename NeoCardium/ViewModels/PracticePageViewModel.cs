@@ -60,7 +60,7 @@ namespace NeoCardium.ViewModels
                     if(_incorrectQuestions.Contains(CurrentQuestion))
                         _incorrectQuestions.Remove(CurrentQuestion);
                     CurrentQuestion.UpdateCorrectCount();
-                    DatabaseHelper.UpdateFlashcardStats(CurrentQuestion.Id, true);
+                    DatabaseHelper.Instance.UpdateFlashcardStats(CurrentQuestion.Id, true);
                     FeedbackMessage = "✅ Richtig!";
                     IsFeedbackVisible = true;
                     await Task.Delay(750);
@@ -71,7 +71,7 @@ namespace NeoCardium.ViewModels
                     if (!_incorrectQuestions.Contains(CurrentQuestion))
                         _incorrectQuestions.Add(CurrentQuestion);
                     CurrentQuestion.UpdateIncorrectCount();
-                    DatabaseHelper.UpdateFlashcardStats(CurrentQuestion.Id, false);
+                    DatabaseHelper.Instance.UpdateFlashcardStats(CurrentQuestion.Id, false);
                     FeedbackMessage = $"⚠Falsch⚠\n Die richtige Antwort lautet :  {AnswerOptions.First(a => a.IsCorrect).AnswerText}";
                     IsFeedbackVisible = true;
                     await Task.Delay(2000);
@@ -215,7 +215,7 @@ namespace NeoCardium.ViewModels
         {
             try
             {
-                var categories = DatabaseHelper.GetCategories();
+                var categories = DatabaseHelper.Instance.GetCategories();
                 if (categories == null || categories.Count == 0)
                 {
                     ExceptionHelper.LogError("Keine Kategorien gefunden!");
@@ -254,7 +254,7 @@ namespace NeoCardium.ViewModels
                 _isRetryModeEnabled = false;
 
                 Console.WriteLine($"StartPractice: Lade Fragen für Kategorie ID {selectedCategory.Id}");
-                var flashcards = DatabaseHelper.GetFlashcardsByCategory(selectedCategory.Id);
+                var flashcards = DatabaseHelper.Instance.GetFlashcardsByCategory(selectedCategory.Id);
 
                 if (flashcards == null || flashcards.Count == 0)
                 {
@@ -418,7 +418,7 @@ namespace NeoCardium.ViewModels
             _usedQuestions.Add(nextFlashcard.Id);
 
             // 🛠️ Antwort wird jetzt aus der neuen Funktion geholt
-            string correctAnswer = DatabaseHelper.GetCorrectAnswerForFlashcard(nextFlashcard.Id);
+            string correctAnswer = DatabaseHelper.Instance.GetCorrectAnswerForFlashcard(nextFlashcard.Id);
 
             CurrentQuestion = new Flashcard
             {
@@ -464,7 +464,7 @@ namespace NeoCardium.ViewModels
                     return;
                 }
 
-                var answers = DatabaseHelper.GetRandomAnswersForFlashcard(CurrentQuestion.Id);
+                var answers = DatabaseHelper.Instance.GetRandomAnswersForFlashcard(CurrentQuestion.Id);
                 if (answers == null || answers.Count == 0)
                 {
                     ExceptionHelper.LogError($"Keine Antworten für Frage {CurrentQuestion.Id} gefunden!");

@@ -45,7 +45,7 @@ namespace NeoCardium.ViewModels
 
         public async Task LoadCategoriesAsync()
         {
-            var cats = DatabaseHelper.GetCategories();
+            var cats = DatabaseHelper.Instance.GetCategories();
             Categories.Clear();
             foreach (var cat in cats)
             {
@@ -58,7 +58,7 @@ namespace NeoCardium.ViewModels
         {
             if (category == null)
                 return;
-            DatabaseHelper.DeleteCategory(category.Id);
+            DatabaseHelper.Instance.DeleteCategory(category.Id);
             await LoadCategoriesAsync();
         }
 
@@ -69,7 +69,7 @@ namespace NeoCardium.ViewModels
 
             foreach (var cat in selectedCategories.ToList())
             {
-                DatabaseHelper.DeleteCategory(cat.Id);
+                DatabaseHelper.Instance.DeleteCategory(cat.Id);
             }
             await LoadCategoriesAsync();
         }

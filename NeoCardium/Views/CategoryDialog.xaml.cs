@@ -35,7 +35,7 @@ namespace NeoCardium.Views
                 }
 
                 // Prüfen, ob Kategorie bereits existiert
-                if (DatabaseHelper.CategoryExists(CategoryNameTextBox.Text))
+                if (DatabaseHelper.Instance.CategoryExists(CategoryNameTextBox.Text))
                 {
                     ErrorMessageTextBlock.Text = "Diese Kategorie existiert bereits.";
                     ErrorMessageTextBlock.Visibility = Visibility.Visible;

@@ -21,11 +21,23 @@
 
     <!-- UI Layout -->
     <StackPanel Orientation="Vertical" Padding="10">
+
+        <!-- Return Button -->
+        <Button x:Name="ReturnButton"
+                Content="⬅ Zurück"
+                Click="ReturnButton_Click"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Margin="0,0,0,10"/>
+
+        <!-- Add Flashcard Button -->
         <Button x:Name="AddFlashcardButton"
                 Content="Neue Karteikarte erstellen"
                 Click="AddFlashcard_Click"
                 HorizontalAlignment="Center"
                 Margin="0,0,0,10"/>
+
+        <!-- Flashcards List -->
         <ListView x:Name="FlashcardsListView" 
                   ItemsSource="{x:Bind ViewModel.Flashcards}" 
                   SelectionMode="Extended"

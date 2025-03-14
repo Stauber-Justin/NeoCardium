@@ -1,6 +1,5 @@
 ﻿using Microsoft.Data.Sqlite;
 using System;
-using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,148 +9,29 @@ using NeoCardium.Helpers;
 
 namespace NeoCardium.Database
 {
-    public static class DatabaseHelper
+    /// <summary>
+    /// Provides CRUD operations for Categories, Flashcards, and FlashcardAnswers.
+    /// </summary>
+    public class DatabaseHelper
     {
-        // Prüft, ob ein Debugger angehängt ist
-        private static readonly bool _isDebuggerAttached = Debugger.IsAttached;
-        // Der Datenbankpfad wird je nach Debug-Status gesetzt
-        private static readonly string _dbPath;
-        // Wird nur im Release/ohne Debugger genutzt
-        private static readonly string? _dataFolder;
+        private readonly Database _database;
 
-        // Statischer Konstruktor: Initialisierung der Pfade je nach Debug-Status
-        static DatabaseHelper()
+        public DatabaseHelper(Database database)
         {
-            if (_isDebuggerAttached)
-            {
-                // Kein definierter Pfad – die Datenbank wird im aktuellen Arbeitsverzeichnis erstellt (z. B. im bin/Debug-Ordner)
-                _dbPath = "NeoCardium.db";
-                _dataFolder = null;
-                ExceptionHelper.LogError("[INFO] Debugger erkannt – verwende den Standard-Datenbankstandort.");
-            }
-            else
-            {
-                string appFolder = AppContext.BaseDirectory
-                    ?? throw new InvalidOperationException("Konnte den Speicherort des Programms nicht bestimmen.");
-                _dataFolder = Path.Combine(appFolder, "Data");
-                if (!Directory.Exists(_dataFolder))
-                {
-                    Directory.CreateDirectory(_dataFolder);
-                    ExceptionHelper.LogError($"[INFO] Data-Verzeichnis erstellt: {_dataFolder}");
-                }
-                _dbPath = Path.Combine(_dataFolder, "NeoCardium.db");
-            }
+            _database = database;
         }
 
-        private static SqliteConnection GetConnection()
-        {
-            return new SqliteConnection($"Data Source={_dbPath}");
-        }
+        // DRY up instance creation with a singleton.
+        public static DatabaseHelper Instance { get; } = new DatabaseHelper(new Database());
 
-        // NEW: Checks whether a flashcard with the same question exists (case-insensitive)
-        public static bool FlashcardExists(int categoryId, string question)
+        #region Category Operations
+
+        public ObservableCollection<Category> GetCategories()
         {
+            var categories = new ObservableCollection<Category>();
             try
             {
-                using var db = GetConnection();
-                db.Open();
-                const string query = "SELECT 1 FROM Flashcards WHERE CategoryId = @CategoryId AND UPPER(Question) = UPPER(@Question) LIMIT 1";
-                using var command = new SqliteCommand(query, db);
-                command.Parameters.AddWithValue("@CategoryId", categoryId);
-                command.Parameters.AddWithValue("@Question", question);
-                return command.ExecuteScalar() != null;
-            }
-            catch (Exception ex)
-            {
-                ExceptionHelper.LogError("Fehler in FlashcardExists().", ex);
-                return false;
-            }
-        }
-
-        public static void InitializeDatabase()
-        {
-            try
-            {
-                // Im Release-Modus sicherstellen, dass das Datenverzeichnis existiert
-                if (!_isDebuggerAttached)
-                {
-                    EnsureDatabasePathExists();
-                }
-
-                bool databaseExists = File.Exists(_dbPath);
-                using var db = GetConnection();
-                db.Open();
-
-                if (databaseExists)
-                {
-                    ExceptionHelper.LogError("[INFO] Datenbank existiert bereits. Keine Neuinitialisierung notwendig.");
-                    return;
-                }
-
-                ExceptionHelper.LogError("[INFO] Erstelle neue Datenbank...");
-
-                string createCategoriesTable = @"CREATE TABLE IF NOT EXISTS Categories (
-                                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                    CategoryName TEXT NOT NULL UNIQUE)";
-
-                string createFlashcardsTable = @"CREATE TABLE IF NOT EXISTS Flashcards (
-                                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                    CategoryId INTEGER NOT NULL,
-                                    Question TEXT NOT NULL,
-                                    CorrectCount INTEGER DEFAULT 0,
-                                    IncorrectCount INTEGER DEFAULT 0,
-                                    FOREIGN KEY (CategoryId) REFERENCES Categories(Id) ON DELETE CASCADE)";
-
-                string createFlashcardAnswersTable = @"CREATE TABLE IF NOT EXISTS FlashcardAnswers (
-                                    AnswerId INTEGER PRIMARY KEY AUTOINCREMENT,
-                                    FlashcardId INTEGER NOT NULL,
-                                    AnswerText TEXT NOT NULL,
-                                    IsCorrect INTEGER NOT NULL CHECK (IsCorrect IN (0,1)),
-                                    FOREIGN KEY (FlashcardId) REFERENCES Flashcards(Id) ON DELETE CASCADE)";
-
-                using var categoryCommand = new SqliteCommand(createCategoriesTable, db);
-                categoryCommand.ExecuteNonQuery();
-                using var cardCommand = new SqliteCommand(createFlashcardsTable, db);
-                cardCommand.ExecuteNonQuery();
-                using var cardAnswerTable = new SqliteCommand(createFlashcardAnswersTable, db);
-                cardAnswerTable.ExecuteNonQuery();
-
-                ExceptionHelper.LogError($"[SUCCESS] Datenbank erfolgreich initialisiert: {_dbPath}");
-            }
-            catch (Exception ex)
-            {
-                ExceptionHelper.LogError("Fehler bei der Initialisierung der Datenbank.", ex);
-            }
-        }
-
-        private static void EnsureDatabasePathExists()
-        {
-            // Falls im Debug-Modus kein spezifisches Verzeichnis verwendet wird, hier abbrechen
-            if (_dataFolder == null)
-            {
-                return;
-            }
-            try
-            {
-                if (!Directory.Exists(_dataFolder))
-                {
-                    Directory.CreateDirectory(_dataFolder);
-                    ExceptionHelper.LogError($"[INFO] Data-Verzeichnis erstellt: {_dataFolder}");
-                }
-            }
-            catch (Exception ex)
-            {
-                ExceptionHelper.LogError("Fehler beim Erstellen des Datenbankverzeichnisses.", ex);
-                throw new InvalidOperationException("Fehler beim Erstellen des Datenbankverzeichnisses.", ex);
-            }
-        }
-
-        public static ObservableCollection<Category> GetCategories()
-        {
-            ObservableCollection<Category> categories = new();
-            try
-            {
-                using var db = GetConnection();
+                using var db = _database.GetConnection();
                 db.Open();
                 string query = "SELECT * FROM Categories";
                 using var command = new SqliteCommand(query, db);
@@ -168,12 +48,118 @@ namespace NeoCardium.Database
             return categories;
         }
 
-        public static ObservableCollection<Flashcard> GetFlashcardsByCategory(int categoryId)
+        public bool AddCategory(string categoryName)
         {
-            ObservableCollection<Flashcard> flashcards = new();
             try
             {
-                using var db = GetConnection();
+                using var db = _database.GetConnection();
+                db.Open();
+                string insertQuery = "INSERT INTO Categories (CategoryName) VALUES (@CategoryName)";
+                using var command = new SqliteCommand(insertQuery, db);
+                command.Parameters.AddWithValue("@CategoryName", categoryName);
+                int affectedRows = command.ExecuteNonQuery();
+                return affectedRows > 0;
+            }
+            catch (SqliteException sqlEx) when (sqlEx.SqliteErrorCode == 19)
+            {
+                ExceptionHelper.LogError($"[WARNUNG] Kategorie existiert bereits: {categoryName}");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                ExceptionHelper.LogError("Fehler beim Erstellen der Kategorie.", ex);
+                return false;
+            }
+        }
+
+        public bool DeleteCategory(int categoryId)
+        {
+            try
+            {
+                using var db = _database.GetConnection();
+                db.Open();
+                string deleteQuery = "DELETE FROM Categories WHERE Id = @CategoryId";
+                using var command = new SqliteCommand(deleteQuery, db);
+                command.Parameters.AddWithValue("@CategoryId", categoryId);
+                command.ExecuteNonQuery();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ExceptionHelper.LogError("Fehler beim Löschen der Kategorie.", ex);
+                return false;
+            }
+        }
+
+        public bool UpdateCategory(int categoryId, string newCategoryName)
+        {
+            try
+            {
+                using var db = _database.GetConnection();
+                db.Open();
+                string updateQuery = "UPDATE Categories SET CategoryName = @NewName WHERE Id = @CategoryId";
+                using var command = new SqliteCommand(updateQuery, db);
+                command.Parameters.AddWithValue("@NewName", newCategoryName);
+                command.Parameters.AddWithValue("@CategoryId", categoryId);
+                int affectedRows = command.ExecuteNonQuery();
+                Debug.WriteLine($"UpdateCategory: Betroffene Zeilen = {affectedRows}");
+                return affectedRows > 0;
+            }
+            catch (Exception ex)
+            {
+                ExceptionHelper.LogError("Fehler beim Aktualisieren der Kategorie.", ex);
+                return false;
+            }
+        }
+
+        public bool CategoryExists(string categoryName)
+        {
+            try
+            {
+                using var db = _database.GetConnection();
+                db.Open();
+                const string query = "SELECT 1 FROM Categories WHERE CategoryName = @CategoryName LIMIT 1";
+                using var command = new SqliteCommand(query, db);
+                command.Parameters.AddWithValue("@CategoryName", categoryName);
+                return command.ExecuteScalar() != null;
+            }
+            catch (Exception ex)
+            {
+                ExceptionHelper.LogError("Fehler in CategoryExists().", ex);
+                return false;
+            }
+        }
+
+        #endregion
+
+        #region Flashcard Operations
+
+        // Check if a flashcard with the same question (case-insensitive) exists in the given category.
+        public bool FlashcardExists(int categoryId, string question)
+        {
+            try
+            {
+                using var db = _database.GetConnection();
+                db.Open();
+                const string query = "SELECT 1 FROM Flashcards WHERE CategoryId = @CategoryId AND UPPER(Question) = UPPER(@Question) LIMIT 1";
+                using var command = new SqliteCommand(query, db);
+                command.Parameters.AddWithValue("@CategoryId", categoryId);
+                command.Parameters.AddWithValue("@Question", question);
+                return command.ExecuteScalar() != null;
+            }
+            catch (Exception ex)
+            {
+                ExceptionHelper.LogError("Fehler in FlashcardExists().", ex);
+                return false;
+            }
+        }
+
+        public ObservableCollection<Flashcard> GetFlashcardsByCategory(int categoryId)
+        {
+            var flashcards = new ObservableCollection<Flashcard>();
+            try
+            {
+                using var db = _database.GetConnection();
                 db.Open();
                 const string query = "SELECT Id, CategoryId, Question, CorrectCount, IncorrectCount FROM Flashcards WHERE CategoryId = @CategoryId";
                 using var command = new SqliteCommand(query, db);
@@ -198,11 +184,11 @@ namespace NeoCardium.Database
             return flashcards;
         }
 
-        public static string GetCorrectAnswerForFlashcard(int flashcardId)
+        public string GetCorrectAnswerForFlashcard(int flashcardId)
         {
             try
             {
-                using var db = GetConnection();
+                using var db = _database.GetConnection();
                 db.Open();
                 const string query = "SELECT AnswerText FROM FlashcardAnswers WHERE FlashcardId = @FlashcardId AND IsCorrect = 1 LIMIT 1";
                 using var command = new SqliteCommand(query, db);
@@ -217,12 +203,12 @@ namespace NeoCardium.Database
             }
         }
 
-        public static List<FlashcardAnswer> GetAnswersByFlashcard(int flashcardId)
+        public List<FlashcardAnswer> GetAnswersByFlashcard(int flashcardId)
         {
-            List<FlashcardAnswer> answers = new();
+            var answers = new List<FlashcardAnswer>();
             try
             {
-                using var db = GetConnection();
+                using var db = _database.GetConnection();
                 db.Open();
                 const string query = "SELECT AnswerId, FlashcardId, AnswerText, IsCorrect FROM FlashcardAnswers WHERE FlashcardId = @FlashcardId";
                 using var command = new SqliteCommand(query, db);
@@ -246,27 +232,22 @@ namespace NeoCardium.Database
             return answers;
         }
 
-        public static List<FlashcardAnswer> GetRandomAnswersForFlashcard(int flashcardId)
+        public List<FlashcardAnswer> GetRandomAnswersForFlashcard(int flashcardId)
         {
             try
             {
-                List<FlashcardAnswer> allAnswers = GetAnswersByFlashcard(flashcardId);
+                var allAnswers = GetAnswersByFlashcard(flashcardId);
                 if (allAnswers == null || allAnswers.Count == 0)
-                {
                     throw new Exception("Keine Antworten für diese Karteikarte gefunden.");
-                }
-                List<FlashcardAnswer> correctAnswers = allAnswers.Where(a => a.IsCorrect).ToList();
-                List<FlashcardAnswer> incorrectAnswers = allAnswers.Where(a => !a.IsCorrect).ToList();
+
+                var correctAnswers = allAnswers.Where(a => a.IsCorrect).ToList();
+                var incorrectAnswers = allAnswers.Where(a => !a.IsCorrect).ToList();
                 Random rnd = new();
-                List<FlashcardAnswer> selectedAnswers = new();
+                var selectedAnswers = new List<FlashcardAnswer>();
                 if (correctAnswers.Any())
-                {
                     selectedAnswers.Add(correctAnswers[rnd.Next(correctAnswers.Count)]);
-                }
                 else
-                {
                     throw new Exception("Keine richtige Antwort für diese Karteikarte vorhanden.");
-                }
                 while (selectedAnswers.Count < 4 && incorrectAnswers.Any())
                 {
                     FlashcardAnswer randomIncorrect = incorrectAnswers[rnd.Next(incorrectAnswers.Count)];
@@ -277,94 +258,12 @@ namespace NeoCardium.Database
             }
             catch (Exception ex)
             {
-                _ = ExceptionHelper.ShowErrorDialogAsync("Fehler beim Generieren der Antworten.", ex).ConfigureAwait(false);
+                ExceptionHelper.LogError("Fehler beim Generieren der Antworten.", ex);
                 return new List<FlashcardAnswer>();
             }
         }
 
-        public static bool AddCategory(string categoryName)
-        {
-            try
-            {
-                using var db = GetConnection();
-                db.Open();
-                string insertQuery = "INSERT INTO Categories (CategoryName) VALUES (@CategoryName)";
-                using var command = new SqliteCommand(insertQuery, db);
-                command.Parameters.AddWithValue("@CategoryName", categoryName);
-                int affectedRows = command.ExecuteNonQuery();
-                return affectedRows > 0;
-            }
-            catch (SqliteException sqlEx) when (sqlEx.SqliteErrorCode == 19)
-            {
-                ExceptionHelper.LogError($"[WARNUNG] Kategorie existiert bereits: {categoryName}");
-                return false;
-            }
-            catch (Exception ex)
-            {
-                ExceptionHelper.LogError("Fehler beim Erstellen der Kategorie.", ex);
-                return false;
-            }
-        }
-
-        public static bool DeleteCategory(int categoryId)
-        {
-            try
-            {
-                using var db = GetConnection();
-                db.Open();
-                string deleteQuery = "DELETE FROM Categories WHERE Id = @CategoryId";
-                using var command = new SqliteCommand(deleteQuery, db);
-                command.Parameters.AddWithValue("@CategoryId", categoryId);
-                command.ExecuteNonQuery();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                ExceptionHelper.LogError("Fehler beim Löschen der Kategorie.", ex);
-                return false;
-            }
-        }
-
-        public static bool UpdateCategory(int categoryId, string newCategoryName)
-        {
-            try
-            {
-                using var db = GetConnection();
-                db.Open();
-                string updateQuery = "UPDATE Categories SET CategoryName = @NewName WHERE Id = @CategoryId";
-                using var command = new SqliteCommand(updateQuery, db);
-                command.Parameters.AddWithValue("@NewName", newCategoryName);
-                command.Parameters.AddWithValue("@CategoryId", categoryId);
-                int affectedRows = command.ExecuteNonQuery();
-                Debug.WriteLine($"UpdateCategory: Betroffene Zeilen = {affectedRows}");
-                return affectedRows > 0;
-            }
-            catch (Exception ex)
-            {
-                _ = ExceptionHelper.ShowErrorDialogAsync("Fehler beim Aktualisieren der Kategorie.", ex).ConfigureAwait(false);
-                return false;
-            }
-        }
-
-        public static bool CategoryExists(string categoryName)
-        {
-            try
-            {
-                using var db = GetConnection();
-                db.Open();
-                const string query = "SELECT 1 FROM Categories WHERE CategoryName = @CategoryName LIMIT 1";
-                using var command = new SqliteCommand(query, db);
-                command.Parameters.AddWithValue("@CategoryName", categoryName);
-                return command.ExecuteScalar() != null;
-            }
-            catch (Exception ex)
-            {
-                ExceptionHelper.LogError("Fehler in CategoryExists().", ex);
-                return false;
-            }
-        }
-
-        public static bool AddFlashcard(int categoryId, string question, List<FlashcardAnswer> answers, out string errorMessage)
+        public bool AddFlashcard(int categoryId, string question, List<FlashcardAnswer> answers, out string errorMessage)
         {
             errorMessage = string.Empty;
             try
@@ -374,7 +273,7 @@ namespace NeoCardium.Database
                     errorMessage = "duplicate";
                     return false;
                 }
-                using var db = GetConnection();
+                using var db = _database.GetConnection();
                 db.Open();
                 string insertFlashcardQuery = "INSERT INTO Flashcards (CategoryId, Question) VALUES (@CategoryId, @Question); SELECT last_insert_rowid();";
                 using var flashcardCommand = new SqliteCommand(insertFlashcardQuery, db);
@@ -401,12 +300,12 @@ namespace NeoCardium.Database
             }
         }
 
-        public static bool UpdateFlashcard(int flashcardId, string newQuestion, List<FlashcardAnswer> answers, out string errorMessage)
+        public bool UpdateFlashcard(int flashcardId, string newQuestion, List<FlashcardAnswer> answers, out string errorMessage)
         {
             errorMessage = string.Empty;
             try
             {
-                using var db = GetConnection();
+                using var db = _database.GetConnection();
                 db.Open();
                 string updateQuery = "UPDATE Flashcards SET Question = @Question WHERE Id = @FlashcardId";
                 using var updateCommand = new SqliteCommand(updateQuery, db);
@@ -437,9 +336,9 @@ namespace NeoCardium.Database
             }
         }
 
-        public static bool AddFlashcardAnswer(int flashcardId, string answerText, bool isCorrect)
+        public bool AddFlashcardAnswer(int flashcardId, string answerText, bool isCorrect)
         {
-            using var db = new SqliteConnection($"Data Source={_dbPath}");
+            using var db = new SqliteConnection(_database.ConnectionString);
             db.Open();
             string insertQuery = "INSERT INTO FlashcardAnswers (FlashcardId, AnswerText, IsCorrect) VALUES (@FlashcardId, @AnswerText, @IsCorrect)";
             using var command = new SqliteCommand(insertQuery, db);
@@ -450,11 +349,11 @@ namespace NeoCardium.Database
             return true;
         }
 
-        public static bool DeleteFlashcard(int flashcardId)
+        public bool DeleteFlashcard(int flashcardId)
         {
             try
             {
-                using var db = GetConnection();
+                using var db = _database.GetConnection();
                 db.Open();
                 string deleteQuery = "DELETE FROM Flashcards WHERE Id = @FlashcardId";
                 using var command = new SqliteCommand(deleteQuery, db);
@@ -469,11 +368,11 @@ namespace NeoCardium.Database
             }
         }
 
-        public static bool UpdateFlashcardStats(int flashcardId, bool isCorrect)
+        public bool UpdateFlashcardStats(int flashcardId, bool isCorrect)
         {
             try
             {
-                using var db = GetConnection();
+                using var db = _database.GetConnection();
                 db.Open();
                 string columnToUpdate = isCorrect ? "CorrectCount" : "IncorrectCount";
                 string query = $"UPDATE Flashcards SET {columnToUpdate} = {columnToUpdate} + 1 WHERE Id = @FlashcardId";
@@ -488,5 +387,7 @@ namespace NeoCardium.Database
                 return false;
             }
         }
+
+        #endregion
     }
 }

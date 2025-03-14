@@ -10,6 +10,7 @@ using Windows.System;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using System.Threading.Tasks;
 using System.Runtime.Versioning;
+using NeoCardium.Database;
 
 namespace NeoCardium.Helpers
 {
@@ -243,7 +244,7 @@ namespace NeoCardium.Helpers
                             {
                                 foreach (var category in selectedCategories)
                                 {
-                                    Database.DatabaseHelper.DeleteCategory(category.Id);
+                                    DatabaseHelper.Instance.DeleteCategory(category.Id);
                                 }
                                 // Hier können Sie z. B. ein Event feuern oder die UI anderweitig aktualisieren.
                             }

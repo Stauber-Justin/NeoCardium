@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Media;
 using NeoCardium.Models;
 using NeoCardium.ViewModels;
 using NeoCardium.Helpers;
+using NeoCardium.Database;
 using System.Linq;
 using System.Diagnostics;
 using System.Collections;
@@ -23,12 +24,18 @@ namespace NeoCardium.Views
         {
             this.InitializeComponent();
             DataContext = ViewModel;
+
+            // Create a new Database instance.
+            var database = new Database.Database();
+            database.Initialize();
+
+            // Load Categories Async
             Loaded += MainPage_Loaded;
+            
         }
 
         private async void MainPage_Loaded(object sender, RoutedEventArgs e)
         {
-            NeoCardium.Database.DatabaseHelper.InitializeDatabase();
             await ViewModel.LoadCategoriesAsync();
         }
 
@@ -138,12 +145,12 @@ namespace NeoCardium.Views
             var result = await dialog.ShowAsync();
             if (result == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(dialog.EnteredCategoryName))
             {
-                if (NeoCardium.Database.DatabaseHelper.CategoryExists(dialog.EnteredCategoryName))
+                if (DatabaseHelper.Instance.CategoryExists(dialog.EnteredCategoryName))
                 {
                     await ExceptionHelper.ShowErrorDialogAsync("Diese Kategorie existiert bereits.", null, this.XamlRoot);
                     return;
                 }
-                bool success = NeoCardium.Database.DatabaseHelper.AddCategory(dialog.EnteredCategoryName);
+                bool success = DatabaseHelper.Instance.AddCategory(dialog.EnteredCategoryName);
                 if (!success)
                 {
                     await ExceptionHelper.ShowErrorDialogAsync("Kategorie konnte nicht gespeichert werden.", null, this.XamlRoot);
