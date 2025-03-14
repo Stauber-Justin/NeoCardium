@@ -1,36 +1,32 @@
-<?xml version="1.0" encoding="utf-8"?>
 <Page
     x:Class="NeoCardium.Views.MainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:local="using:NeoCardium.Views"
     xmlns:models="using:NeoCardium.Models"
-    xmlns:helpers="using:NeoCardium.Helpers"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <!-- Kontextmenü für Kategorien -->
     <Page.Resources>
-        <MenuFlyout x:Key="CategoryContextFlyout">
-            <MenuFlyoutItem Text="Bearbeiten"
-                            Click="EditCategory_Click"
-                            CommandParameter="{Binding}" />
-            <MenuFlyoutItem Text="Löschen"
-                            Click="DeleteCategory_Click"
-                            CommandParameter="{Binding}" />
+        <!-- Kontextmenü für EIN ausgewähltes Item -->
+        <MenuFlyout x:Key="SingleCategoryContextFlyout">
+            <MenuFlyoutItem Text="Bearbeiten" Click="EditCategory_Click"/>
+            <MenuFlyoutItem Text="Löschen"    Click="DeleteCategory_Click"/>
+        </MenuFlyout>
+
+        <!-- Kontextmenü für MEHRERE ausgewählte Items -->
+        <MenuFlyout x:Key="MultiCategoryContextFlyout">
+            <MenuFlyoutItem Text="Extract (Placeholder)" Click="ExtractSelectedCategories_Click"/>
+            <MenuFlyoutItem Text="Auswahl löschen"       Click="DeleteSelectedCategories_Click"/>
         </MenuFlyout>
     </Page.Resources>
 
     <Grid Padding="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <!-- Titel -->
             <RowDefinition Height="*"/>
-            <!-- Liste -->
             <RowDefinition Height="Auto"/>
-            <!-- Button unten -->
         </Grid.RowDefinitions>
 
         <TextBlock Text="Deine Kategorien"
@@ -38,23 +34,24 @@
                    FontWeight="Bold"
                    Margin="0,0,0,10"/>
 
-        <!-- ListView mit MultiSelectBehavior -->
         <ScrollViewer Grid.Row="1">
             <ListView x:Name="CategoryListView"
                       SelectionMode="Extended"
-                      helpers:MultiSelectBehavior.EnableMultiSelect="True"
-                      helpers:MultiSelectBehavior.DeleteAllCommand="{x:Bind DeleteSelectedCategoriesCommand}"
-                      helpers:MultiSelectBehavior.ExtractCommand="{x:Bind ExtractSelectedCategoriesCommand}"
-                      ItemsSource="{x:Bind Categories, Mode=OneWay}"
                       IsItemClickEnabled="True"
-                      ItemClick="CategoryListView_ItemClick">
+                      ItemClick="CategoryListView_ItemClick"
+                      RightTapped="CategoryListView_RightTapped"
+                      ItemsSource="{x:Bind Categories, Mode=OneWay}">
+
+                <!-- KEIN ContextFlyout mehr direkt am Item -->
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="models:Category">
-                        <ListViewItem ContextFlyout="{StaticResource CategoryContextFlyout}">
-                            <TextBlock Text="{x:Bind CategoryName}" FontSize="18" Margin="10,5"/>
+                        <ListViewItem>
+                            <TextBlock Text="{x:Bind CategoryName}" 
+                                       FontSize="18" Margin="10,5"/>
                         </ListViewItem>
                     </DataTemplate>
                 </ListView.ItemTemplate>
+
             </ListView>
         </ScrollViewer>
 
