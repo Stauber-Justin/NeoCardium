@@ -29,7 +29,6 @@
         <Grid.RowDefinitions>
             <!-- The first two rows auto-size to their content -->
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <!-- The last row takes the remaining space (star layout) -->
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
@@ -43,15 +42,24 @@
                 Margin="0,0,0,10"
                 Grid.Row="0"/>
 
-        <!-- Row 1: "Neue Karteikarte erstellen" Button -->
-        <Button x:Name="AddFlashcardButton"
-                Content="Neue Karteikarte erstellen"
-                Click="AddFlashcard_Click"
-                HorizontalAlignment="Center"
-                Margin="0,0,0,10"
-                Grid.Row="0"/>
+        <!-- Row 0: Horizontal container for the two create buttons -->
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    Spacing="20"
+                    Grid.Row="0">
 
-        <!-- Row 2: The ListView. 
+            <!-- Existing single-create button -->
+            <Button x:Name="AddFlashcardButton"
+                    Content="Neue Karteikarte erstellen"
+                    Click="AddFlashcard_Click"/>
+
+            <!-- New BATCH-create button -->
+            <Button x:Name="BatchCreateButton"
+                    Content="Neue Karteikarten Batch-Create"
+                    Click="BatchCreateButton_Click"/>
+        </StackPanel>
+
+        <!-- Row 1: The ListView. 
              Because it's in a star row, it will scroll automatically when items exceed the available space. -->
         <ListView x:Name="FlashcardsListView" 
                   ItemsSource="{x:Bind ViewModel.Flashcards}" 

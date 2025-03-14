@@ -126,8 +126,8 @@ namespace NeoCardium.Views
             }
         }
 
-        // Multi-menu "Extract (Placeholder)"
-        private void ExtractSelectedCategories_Click(object sender, RoutedEventArgs e)
+        // Multi-menu "Auswahl Exportieren" handler.
+        private void ExportSelectedCategories_Click(object sender, RoutedEventArgs e)
         {
             var selectedCategories = CategoryListView.SelectedItems
                 .Cast<object>()
@@ -136,7 +136,26 @@ namespace NeoCardium.Views
                 .Cast<Category>()
                 .ToList();
 
-            ViewModel.ExtractSelectedCategoriesCommand.Execute(selectedCategories);
+            ViewModel.ExportCategoriesCommand.Execute(selectedCategories);
+        }
+
+        // Single-menu "Exportieren" handler.
+        private void ExportCategory_Click(object sender, RoutedEventArgs e)
+        {
+            if (CategoryListView.SelectedItems.Count == 1)
+            {
+                var cat = GetCategoryFromItem(CategoryListView.SelectedItems[0]);
+                if (cat != null)
+                {
+                    var list = new List<Category> { cat };
+                    ViewModel.ExportCategoriesCommand.Execute(list);
+                }
+            }
+        }
+
+        private void ImportButton_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.ImportCategoriesCommand.Execute(null);
         }
 
         private async void AddCategory_Click(object sender, RoutedEventArgs e)
@@ -174,5 +193,6 @@ namespace NeoCardium.Views
                 }
             }
         }
+
     }
 }

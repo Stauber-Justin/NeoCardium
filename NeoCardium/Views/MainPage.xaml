@@ -14,11 +14,12 @@
         <MenuFlyout x:Key="SingleCategoryContextFlyout">
             <MenuFlyoutItem Text="Bearbeiten" Click="EditCategory_Click"/>
             <MenuFlyoutItem Text="Löschen"    Click="DeleteCategory_Click"/>
+            <MenuFlyoutItem Text="Exportieren" Click="ExportCategory_Click"/>
         </MenuFlyout>
 
         <!-- Kontextmenü für mehrere ausgewählte Kategorien -->
         <MenuFlyout x:Key="MultiCategoryContextFlyout">
-            <MenuFlyoutItem Text="Extract (Placeholder)" Click="ExtractSelectedCategories_Click"/>
+            <MenuFlyoutItem Text="Auswahl Exportieren" Click="ExportSelectedCategories_Click"/>
             <MenuFlyoutItem Text="Auswahl löschen"       Click="DeleteSelectedCategories_Click"/>
         </MenuFlyout>
     </Page.Resources>
@@ -42,22 +43,36 @@
                       ItemClick="CategoryListView_ItemClick"
                       RightTapped="CategoryListView_RightTapped"
                       ItemsSource="{x:Bind ViewModel.Categories, Mode=OneWay}">
-                <!-- Kein direktes ContextFlyout mehr -->
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="models:Category">
                         <ListViewItem>
                             <TextBlock Text="{x:Bind CategoryName}" 
-                       FontSize="18" Margin="10,5"/>
+                                       FontSize="18" Margin="10,5"/>
                         </ListViewItem>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
         </ScrollViewer>
 
-        <Button Grid.Row="2"
-                Content="Neue Kategorie erstellen"
-                Click="AddCategory_Click"
-                HorizontalAlignment="Center"
-                Margin="0,10,0,0"/>
+        <!-- Bottom row with two buttons: "Neue Kategorie erstellen" and "Import" -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Content="Neue Kategorie erstellen"
+                    Click="AddCategory_Click"
+                    HorizontalAlignment="Center"
+                    Margin="0,10,0,0"
+                    Grid.Column="1"/>
+
+            <Button Content="Import"
+                    Command="{x:Bind ViewModel.ImportCategoriesCommand}"
+                    HorizontalAlignment="Right"
+                    Margin="0,10,0,0"
+                    Grid.Column="2"/>
+        </Grid>
     </Grid>
 </Page>

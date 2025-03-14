@@ -83,6 +83,20 @@ namespace NeoCardium.Views
             }
         }
 
+        private async void BatchCreateButton_Click(object sender, RoutedEventArgs e)
+        {
+            // new BATCH-create logic
+            var batchDialog = new FlashcardDialogBatch
+            {
+                XamlRoot = this.XamlRoot,
+                CategoryId = ViewModel.SelectedCategoryId
+            };
+
+            await batchDialog.ShowAsync();
+            // after it closes, we can refresh the list:
+            await ViewModel.LoadFlashcardsAsync(ViewModel.SelectedCategoryId);
+        }
+
         private async void EditFlashcard_Click(object sender, RoutedEventArgs e)
         {
             try

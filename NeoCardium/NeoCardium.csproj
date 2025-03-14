@@ -18,6 +18,7 @@
   <ItemGroup>
     <None Remove="Views\CategoryDialog.xaml" />
     <None Remove="Views\FlashcardDialog.xaml" />
+    <None Remove="Views\FlashcardDialogBatch.xaml" />
     <None Remove="Views\FlashcardsPage.xaml" />
     <None Remove="Views\MainPage.xaml" />
     <None Remove="Views\SettingsPage.xaml" />
@@ -53,6 +54,11 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Services\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\FlashcardDialogBatch.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\FlashcardDialog.xaml">
