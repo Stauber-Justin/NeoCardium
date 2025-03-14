@@ -1,35 +1,36 @@
 ﻿using System;
-using System.Runtime.Versioning;
-using Windows.System;
-using Windows.UI.Core;
+using System.Runtime.InteropServices;
 using NeoCardium.Helpers;
+using Microsoft.UI.Xaml.Controls;
 
 namespace NeoCardium.Helpers
 {
     public static class KeyboardHelper
     {
+        // P/Invoke: GetKeyState aus user32.dll
+        [DllImport("user32.dll")]
+        private static extern short GetKeyState(int nVirtKey);
+
+        private const int VK_SHIFT = 0x10;
+        private const int VK_CONTROL = 0x11;
+        private const int VK_MENU = 0x12; // ALT
+
         /// <summary>
-        /// Prüft, ob eine Modifier-Taste (STRG, SHIFT oder ALT) gedrückt ist.
+        /// Prüft, ob mindestens eine Modifier-Taste (Shift, Control oder Alt) gedrückt ist.
         /// </summary>
-        [SupportedOSPlatform("windows10.0.10240.0")]
         public static bool IsModifierKeyPressed()
         {
             try
             {
-                var coreWindow = CoreWindow.GetForCurrentThread();
-                if (coreWindow == null)
-                {
-                    ExceptionHelper.ShowErrorInfoBar(new Microsoft.UI.Xaml.Controls.InfoBar(), "Fehler: CoreWindow ist null!");
-                    return false;
-                }
-
-                return coreWindow.GetKeyState(VirtualKey.Control).HasFlag(CoreVirtualKeyStates.Down) ||
-                       coreWindow.GetKeyState(VirtualKey.Shift).HasFlag(CoreVirtualKeyStates.Down) ||
-                       coreWindow.GetKeyState(VirtualKey.Menu).HasFlag(CoreVirtualKeyStates.Down);
+                bool shiftPressed = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+                bool ctrlPressed = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
+                bool altPressed = (GetKeyState(VK_MENU) & 0x8000) != 0;
+                return shiftPressed || ctrlPressed || altPressed;
             }
             catch (Exception ex)
             {
-                ExceptionHelper.ShowErrorInfoBar(new Microsoft.UI.Xaml.Controls.InfoBar(), "Fehler beim Prüfen der Tastatureingabe.", ex);
+                // Hinweis: In einer produktiven App sollten Sie ggf. einen geeigneteren Fallback nutzen.
+                ExceptionHelper.ShowErrorInfoBar(new InfoBar(), "Fehler beim Prüfen der Tastatureingabe.", ex);
                 return false;
             }
         }
