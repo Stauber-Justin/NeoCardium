@@ -42,6 +42,9 @@ namespace NeoCardium.Views
             if (Frame.CanGoBack)
             {
                 Frame.GoBack();
+            } else
+            {
+                Frame.Navigate(typeof(MainPage));
             }
         }
 

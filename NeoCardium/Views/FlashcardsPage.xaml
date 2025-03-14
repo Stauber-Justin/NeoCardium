@@ -19,31 +19,48 @@
         </MenuFlyout>
     </Page.Resources>
 
-    <!-- UI Layout -->
-    <StackPanel Orientation="Vertical" Padding="10">
+    <!-- 
+        Root layout: a Grid with 3 rows 
+          Row 0: Return Button
+          Row 1: "Neue Karteikarte erstellen" Button
+          Row 2: The ListView (fills remaining space and scrolls automatically)
+    -->
+    <Grid Padding="10">
+        <Grid.RowDefinitions>
+            <!-- The first two rows auto-size to their content -->
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <!-- The last row takes the remaining space (star layout) -->
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-        <!-- Return Button -->
+        <!-- Row 0: Return Button -->
         <Button x:Name="ReturnButton"
                 Content="⬅ Zurück"
                 Click="ReturnButton_Click"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
-                Margin="0,0,0,10"/>
+                Margin="0,0,0,10"
+                Grid.Row="0"/>
 
-        <!-- Add Flashcard Button -->
+        <!-- Row 1: "Neue Karteikarte erstellen" Button -->
         <Button x:Name="AddFlashcardButton"
                 Content="Neue Karteikarte erstellen"
                 Click="AddFlashcard_Click"
                 HorizontalAlignment="Center"
-                Margin="0,0,0,10"/>
+                Margin="0,0,0,10"
+                Grid.Row="0"/>
 
-        <!-- Flashcards List -->
+        <!-- Row 2: The ListView. 
+             Because it's in a star row, it will scroll automatically when items exceed the available space. -->
         <ListView x:Name="FlashcardsListView" 
                   ItemsSource="{x:Bind ViewModel.Flashcards}" 
                   SelectionMode="Extended"
                   IsRightTapEnabled="True"
                   RightTapped="FlashcardsListView_RightTapped"
-                  SelectionChanged="FlashcardsListView_SelectionChanged">
+                  SelectionChanged="FlashcardsListView_SelectionChanged"
+                  Grid.Row="2">
+
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="models:Flashcard">
                     <StackPanel Orientation="Horizontal" Padding="10">
@@ -57,5 +74,5 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-    </StackPanel>
+    </Grid>
 </Page>

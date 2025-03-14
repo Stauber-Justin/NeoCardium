@@ -29,9 +29,9 @@ namespace NeoCardium.Views
             var database = new Database.Database();
             database.Initialize();
 
-            // Load Categories Async
-            Loaded += MainPage_Loaded;
-            
+            DebugUtility.InitializeDebugData();   // Only inserts test data when debugging
+            Loaded += MainPage_Loaded; // Load Categories Async
+
         }
 
         private async void MainPage_Loaded(object sender, RoutedEventArgs e)
