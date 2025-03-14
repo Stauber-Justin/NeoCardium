@@ -9,9 +9,11 @@ using NeoCardium.Models;
 using Windows.System;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using System.Threading.Tasks;
+using System.Runtime.Versioning;
 
 namespace NeoCardium.Helpers
 {
+    [SupportedOSPlatform("windows10.0.19041.0")]
     public static class MultiSelectBehavior
     {
         #region Attached Properties
