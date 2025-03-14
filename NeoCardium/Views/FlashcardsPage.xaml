@@ -27,14 +27,13 @@
                 HorizontalAlignment="Center"
                 Margin="0,0,0,10"/>
         <ListView x:Name="FlashcardsListView" 
-                  ItemsSource="{x:Bind Flashcards}" 
+                  ItemsSource="{x:Bind ViewModel.Flashcards}" 
                   SelectionMode="Extended"
                   IsRightTapEnabled="True"
                   RightTapped="FlashcardsListView_RightTapped"
                   SelectionChanged="FlashcardsListView_SelectionChanged">
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="models:Flashcard">
-                    <!-- We use a container that does not override the generated container -->
                     <StackPanel Orientation="Horizontal" Padding="10">
                         <TextBlock Text="{x:Bind Question}" FontWeight="Bold"/>
                         <TextBlock Text=" | " Foreground="Gray"/>

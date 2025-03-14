@@ -4,52 +4,33 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using NeoCardium.Models;
 using NeoCardium.Database;
 using NeoCardium.Helpers;
+using NeoCardium.ViewModels;
 using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Navigation;
 
 namespace NeoCardium.Views
 {
     public sealed partial class FlashcardsPage : Page
     {
-        public ObservableCollection<Flashcard> Flashcards { get; private set; } = new ObservableCollection<Flashcard>();
-        private int _selectedCategoryId;
+        // Expose the new ViewModel as a public property for x:Bind.
+        public FlashcardsPageViewModel ViewModel { get; } = new FlashcardsPageViewModel();
 
         public FlashcardsPage()
         {
             this.InitializeComponent();
-            this.DataContext = this; // For XAML binding
+            DataContext = ViewModel;
         }
 
-        protected override void OnNavigatedTo(NavigationEventArgs e)
+        protected override async void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
         {
             if (e.Parameter is int categoryId)
             {
-                _selectedCategoryId = categoryId;
-                _ = LoadFlashcards(categoryId);
-            }
-        }
-
-        private async Task LoadFlashcards(int categoryId)
-        {
-            try
-            {
-                Flashcards.Clear();
-                foreach (var flashcard in DatabaseHelper.GetFlashcardsByCategory(categoryId))
-                {
-                    Flashcards.Add(flashcard);
-                }
-                FlashcardsListView.ItemsSource = Flashcards;
-            }
-            catch (Exception ex)
-            {
-                await ExceptionHelper.ShowErrorDialogAsync("Fehler beim Laden der Karteikarten.", ex, this.XamlRoot);
+                await ViewModel.LoadFlashcardsAsync(categoryId);
             }
         }
 
@@ -63,13 +44,13 @@ namespace NeoCardium.Views
                     !string.IsNullOrWhiteSpace(dialog.Question) &&
                     dialog.Answers.Any())
                 {
-                    bool success = DatabaseHelper.AddFlashcard(_selectedCategoryId, dialog.Question, dialog.Answers.ToList());
+                    bool success = DatabaseHelper.AddFlashcard(ViewModel.SelectedCategoryId, dialog.Question, dialog.Answers.ToList());
                     if (!success)
                     {
                         await ExceptionHelper.ShowErrorDialogAsync("Karteikarte konnte nicht gespeichert werden.", null, this.XamlRoot);
                         return;
                     }
-                    await LoadFlashcards(_selectedCategoryId);
+                    await ViewModel.LoadFlashcardsAsync(ViewModel.SelectedCategoryId);
                 }
             }
             catch (Exception ex)
@@ -82,7 +63,7 @@ namespace NeoCardium.Views
         {
             try
             {
-                if (sender is not ListView listView || listView.SelectedItem is not Flashcard selectedFlashcard)
+                if (FlashcardsListView.SelectedItem is not Flashcard selectedFlashcard)
                 {
                     Debug.WriteLine("FEHLER: EditFlashcard_Click - Kein gültiges Flashcard ausgewählt.");
                     return;
@@ -106,7 +87,7 @@ namespace NeoCardium.Views
                     dialog.Answers.Any())
                 {
                     DatabaseHelper.UpdateFlashcard(selectedFlashcard.Id, dialog.Question, dialog.Answers.ToList());
-                    await LoadFlashcards(_selectedCategoryId);
+                    await ViewModel.LoadFlashcardsAsync(ViewModel.SelectedCategoryId);
                 }
             }
             catch (Exception ex)
@@ -115,12 +96,15 @@ namespace NeoCardium.Views
             }
         }
 
-        // Delete flashcards (handles both single and multi selection)
+        // Delete flashcards (single or multi) using the shared confirmation dialog helper.
         private async void DeleteFlashcard_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 var selectedFlashcards = FlashcardsListView.SelectedItems
+                    .Cast<object>()
+                    .Select(item => item as Flashcard)
+                    .Where(card => card != null)
                     .Cast<Flashcard>()
                     .ToList();
 
@@ -139,11 +123,18 @@ namespace NeoCardium.Views
 
                 if (result == ContentDialogResult.Primary)
                 {
-                    foreach (var flashcard in selectedFlashcards)
+                    if (selectedFlashcards.Count > 1)
                     {
-                        DatabaseHelper.DeleteFlashcard(flashcard.Id);
+                        foreach (var flashcard in selectedFlashcards)
+                        {
+                            DatabaseHelper.DeleteFlashcard(flashcard.Id);
+                        }
                     }
-                    await LoadFlashcards(_selectedCategoryId);
+                    else
+                    {
+                        DatabaseHelper.DeleteFlashcard(selectedFlashcards.First().Id);
+                    }
+                    await ViewModel.LoadFlashcardsAsync(ViewModel.SelectedCategoryId);
                 }
             }
             catch (Exception ex)
@@ -152,10 +143,15 @@ namespace NeoCardium.Views
             }
         }
 
-        // Prevent automatic edit if no modifier is pressed and only one item is selected.
+        // When selection changes: if only one item is selected and no modifier is pressed, trigger edit.
         private void FlashcardsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // If multiple items are selected or a modifier key is pressed, do nothing.
+            if (FlashcardsListView == null || FlashcardsListView.SelectedItem == null)
+            {
+                Debug.WriteLine("Keine Flashcard ausgewählt.");
+                return;
+            }
+
             if (FlashcardsListView.SelectedItems.Count > 1 || KeyboardHelper.IsModifierKeyPressed())
             {
                 Debug.WriteLine("Multi-select aktiv – Bearbeitung nicht automatisch gestartet.");
@@ -165,8 +161,8 @@ namespace NeoCardium.Views
             if (FlashcardsListView.SelectedItem is Flashcard selectedFlashcard)
             {
                 Debug.WriteLine($"Bearbeite Flashcard: {selectedFlashcard.Question}");
-                // Here you might want to trigger edit only on single-click; if desired uncomment the next line:
-                // EditFlashcard_Click(sender, new RoutedEventArgs());
+                // Automatically trigger the edit behavior on single selection.
+                EditFlashcard_Click(sender, new RoutedEventArgs());
             }
         }
 
@@ -174,7 +170,7 @@ namespace NeoCardium.Views
         {
             if (e.OriginalSource is FrameworkElement element && element.DataContext is Flashcard flashcard)
             {
-                // If the item under the pointer is not already selected, clear and select it.
+                // If the item under the pointer is not already selected, clear selection and select it.
                 if (!FlashcardsListView.SelectedItems.Cast<Flashcard>().Any(f => f.Id == flashcard.Id))
                 {
                     FlashcardsListView.SelectedItems.Clear();
