@@ -1,51 +1,42 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
-
+using System;
 using System.Collections.ObjectModel;
-using System.Runtime.Versioning;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
-using NeoCardium.Models;
+using System.Windows.Input;
 using NeoCardium.Database;
 using NeoCardium.Helpers;
-using System.Diagnostics;
-using Windows.ApplicationModel.VoiceCommands;
-
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
+using NeoCardium.Models;
 
 namespace NeoCardium.Views
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
-
     public sealed partial class MainPage : Page
     {
         public ObservableCollection<Category> Categories { get; set; } = new();
+
+        // Neue Befehle für die Multi-Select-Aktionen
+        public ICommand DeleteSelectedCategoriesCommand { get; }
+        public ICommand ExtractSelectedCategoriesCommand { get; }
 
         public MainPage()
         {
             this.InitializeComponent();
             this.Loaded += MainPage_Loaded;
+
+            // Befehle mit RelayCommand initialisieren
+            DeleteSelectedCategoriesCommand = new RelayCommand(DeleteSelectedCategories);
+            ExtractSelectedCategoriesCommand = new RelayCommand(ExtractSelectedCategories);
         }
 
         private void MainPage_Loaded(object sender, RoutedEventArgs e)
         {
-            DatabaseHelper.InitializeDatabase(); // Erstellt die Datenbank, falls sie nicht existiert
+            DatabaseHelper.InitializeDatabase(); // Erstellt die Datenbank, falls nicht vorhanden
             _ = LoadCategories();
         }
+
         private async Task LoadCategories()
         {
             try
@@ -57,7 +48,6 @@ namespace NeoCardium.Views
                     return;
                 }
 
-                // UI-Thread verwenden, um Fehler zu vermeiden
                 _ = DispatcherQueue.TryEnqueue(() =>
                 {
                     Categories.Clear();
@@ -65,8 +55,8 @@ namespace NeoCardium.Views
                     {
                         Categories.Add(category);
                     }
-                    CategoryListView.ItemsSource = null; // UI entkoppeln
-                    CategoryListView.ItemsSource = Categories; // Neu setzen
+                    CategoryListView.ItemsSource = null;
+                    CategoryListView.ItemsSource = Categories;
                 });
 
                 Debug.WriteLine($"LoadCategories: {Categories.Count} Kategorien geladen.");
@@ -77,29 +67,17 @@ namespace NeoCardium.Views
             }
         }
 
+        // Bei einem normalen Klick (ohne Modifier) wird die Auswahl zurückgesetzt und navigiert.
         private void CategoryListView_ItemClick(object sender, ItemClickEventArgs e)
         {
-            if (e.ClickedItem is Category selectedCategory)
+            if (!KeyboardHelper.IsModifierKeyPressed())
             {
-                Frame.Navigate(typeof(FlashcardsPage), selectedCategory.Id);
-            }
-        }
-
-        private void CategoryListView_RightTapped(object sender, RightTappedRoutedEventArgs e)
-        {
-            if (e.OriginalSource is FrameworkElement element && element.DataContext is Category category)
-            {
-                // Kontextmenü manuell öffnen
-                var flyoutBase = FlyoutBase.GetAttachedFlyout(element);
-                flyoutBase?.ShowAt(element);
-            }
-        }
-
-        private void OpenContextMenu_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button button)
-            {
-                button.Flyout?.ShowAt(button);
+                CategoryListView.SelectedItems.Clear();
+                CategoryListView.SelectedItems.Add(e.ClickedItem);
+                if (e.ClickedItem is Category selectedCategory)
+                {
+                    Frame.Navigate(typeof(FlashcardsPage), selectedCategory.Id);
+                }
             }
         }
 
@@ -113,7 +91,6 @@ namespace NeoCardium.Views
                 var dialogResult = await categoryDialog.ShowAsync();
                 if (dialogResult == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(categoryDialog.EnteredCategoryName))
                 {
-                    // Prüfen, ob die Kategorie bereits existiert
                     if (DatabaseHelper.CategoryExists(categoryDialog.EnteredCategoryName))
                     {
                         await ExceptionHelper.ShowErrorDialogAsync("Diese Kategorie existiert bereits.", null, this.XamlRoot);
@@ -203,5 +180,41 @@ namespace NeoCardium.Views
             }
         }
 
+        // Handler für den Delete-All-Befehl bei Mehrfachauswahl.
+        private async void DeleteSelectedCategories(object? parameter)
+        {
+            if (parameter is System.Collections.IList selectedItems && selectedItems.Count > 0)
+            {
+                var categories = selectedItems.Cast<Category>().ToList();
+                string message = categories.Count == 1
+                    ? $"Möchtest du die Kategorie '{categories[0].CategoryName}' wirklich löschen?"
+                    : $"Möchtest du die {categories.Count} ausgewählten Kategorien wirklich löschen?";
+
+                ContentDialog confirmDialog = new ContentDialog
+                {
+                    Title = "Kategorien löschen",
+                    Content = message,
+                    PrimaryButtonText = "Löschen",
+                    CloseButtonText = "Abbrechen",
+                    XamlRoot = this.XamlRoot
+                };
+
+                var result = await confirmDialog.ShowAsync();
+                if (result == ContentDialogResult.Primary)
+                {
+                    foreach (var category in categories)
+                    {
+                        DatabaseHelper.DeleteCategory(category.Id);
+                    }
+                    await LoadCategories();
+                }
+            }
+        }
+
+        // Handler für den Extract-Befehl (Platzhalter).
+        private void ExtractSelectedCategories(object? parameter)
+        {
+            Debug.WriteLine("ExtractSelectedCategories command executed (placeholder).");
+        }
     }
 }
