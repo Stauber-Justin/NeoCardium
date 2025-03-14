@@ -17,7 +17,6 @@ namespace NeoCardium.Views
 {
     public sealed partial class FlashcardsPage : Page
     {
-        // Expose the new ViewModel as a public property for x:Bind.
         public FlashcardsPageViewModel ViewModel { get; } = new FlashcardsPageViewModel();
 
         public FlashcardsPage()
@@ -36,67 +35,83 @@ namespace NeoCardium.Views
 
         private async void AddFlashcard_Click(object sender, RoutedEventArgs e)
         {
-            try
+            await ShowFlashcardDialogAsync(isEditMode: false, flashcard: null);
+        }
+
+        /// <summary>
+        /// Shows the FlashcardDialog for creating or editing a flashcard.
+        /// If the user enters a duplicate flashcard name, an error message is shown and the dialog is re-shown with the previous content intact.
+        /// For other errors, a generic error is shown and the dialog is closed.
+        /// </summary>
+        private async Task ShowFlashcardDialogAsync(bool isEditMode, Flashcard? flashcard)
+        {
+            // Create an instance of the dialog
+            var dialog = new FlashcardDialog { XamlRoot = this.XamlRoot };
+
+            if (isEditMode && flashcard != null)
             {
-                var dialog = new FlashcardDialog { XamlRoot = this.XamlRoot };
-                var result = await dialog.ShowAsync();
-                if (result == ContentDialogResult.Primary &&
-                    !string.IsNullOrWhiteSpace(dialog.Question) &&
-                    dialog.Answers.Any())
+                dialog.Question = flashcard.Question;
+                dialog.Answers.Clear();
+                foreach (var answer in DatabaseHelper.GetAnswersByFlashcard(flashcard.Id))
                 {
-                    bool success = DatabaseHelper.AddFlashcard(ViewModel.SelectedCategoryId, dialog.Question, dialog.Answers.ToList());
-                    if (!success)
+                    dialog.Answers.Add(answer);
+                }
+            }
+
+            while (true)
+            {
+                var result = await dialog.ShowAsync();
+                if (result != ContentDialogResult.Primary)
+                    return;
+
+                if (string.IsNullOrWhiteSpace(dialog.Question) || !dialog.Answers.Any())
+                {
+                    await ExceptionHelper.ShowErrorDialogAsync("Frage und mindestens eine Antwort sind erforderlich.", null, this.XamlRoot);
+                    continue;
+                }
+
+                string errorMessage;
+                bool success;
+
+                if (isEditMode && flashcard != null)
+                {
+                    success = DatabaseHelper.UpdateFlashcard(flashcard.Id, dialog.Question, dialog.Answers.ToList(), out errorMessage);
+                }
+                else
+                {
+                    success = DatabaseHelper.AddFlashcard(ViewModel.SelectedCategoryId, dialog.Question, dialog.Answers.ToList(), out errorMessage);
+                }
+
+                if (success)
+                {
+                    await ViewModel.LoadFlashcardsAsync(ViewModel.SelectedCategoryId);
+                    return;
+                }
+                else
+                {
+                    if (errorMessage == "duplicate")
+                    {
+                        await ExceptionHelper.ShowErrorDialogAsync("Es existiert bereits eine Karteikarte mit diesem Namen, bitte verwende einen anderen!", null, this.XamlRoot);
+                        // Loop again so the dialog stays open for user to modify the name.
+                        continue;
+                    }
+                    else
                     {
                         await ExceptionHelper.ShowErrorDialogAsync("Karteikarte konnte nicht gespeichert werden.", null, this.XamlRoot);
                         return;
                     }
-                    await ViewModel.LoadFlashcardsAsync(ViewModel.SelectedCategoryId);
                 }
-            }
-            catch (Exception ex)
-            {
-                await ExceptionHelper.ShowErrorDialogAsync("Fehler beim Erstellen einer Karteikarte.", ex, this.XamlRoot);
             }
         }
 
         private async void EditFlashcard_Click(object sender, RoutedEventArgs e)
         {
-            try
+            if (FlashcardsListView.SelectedItem is Flashcard selectedFlashcard)
             {
-                if (FlashcardsListView.SelectedItem is not Flashcard selectedFlashcard)
-                {
-                    Debug.WriteLine("FEHLER: EditFlashcard_Click - Kein gültiges Flashcard ausgewählt.");
-                    return;
-                }
-
-                var dialog = new FlashcardDialog
-                {
-                    Question = selectedFlashcard.Question,
-                    XamlRoot = this.XamlRoot
-                };
-
-                dialog.Answers.Clear();
-                foreach (var answer in DatabaseHelper.GetAnswersByFlashcard(selectedFlashcard.Id))
-                {
-                    dialog.Answers.Add(answer);
-                }
-
-                var result = await dialog.ShowAsync();
-                if (result == ContentDialogResult.Primary &&
-                    !string.IsNullOrWhiteSpace(dialog.Question) &&
-                    dialog.Answers.Any())
-                {
-                    DatabaseHelper.UpdateFlashcard(selectedFlashcard.Id, dialog.Question, dialog.Answers.ToList());
-                    await ViewModel.LoadFlashcardsAsync(ViewModel.SelectedCategoryId);
-                }
-            }
-            catch (Exception ex)
-            {
-                await ExceptionHelper.ShowErrorDialogAsync("Fehler beim Bearbeiten der Karteikarte.", ex, this.XamlRoot);
+                await ShowFlashcardDialogAsync(isEditMode: true, flashcard: selectedFlashcard);
             }
         }
 
-        // Delete flashcards (single or multi) using the shared confirmation dialog helper.
         private async void DeleteFlashcard_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -123,16 +138,9 @@ namespace NeoCardium.Views
 
                 if (result == ContentDialogResult.Primary)
                 {
-                    if (selectedFlashcards.Count > 1)
+                    foreach (var flashcard in selectedFlashcards)
                     {
-                        foreach (var flashcard in selectedFlashcards)
-                        {
-                            DatabaseHelper.DeleteFlashcard(flashcard.Id);
-                        }
-                    }
-                    else
-                    {
-                        DatabaseHelper.DeleteFlashcard(selectedFlashcards.First().Id);
+                        DatabaseHelper.DeleteFlashcard(flashcard.Id);
                     }
                     await ViewModel.LoadFlashcardsAsync(ViewModel.SelectedCategoryId);
                 }
@@ -143,7 +151,6 @@ namespace NeoCardium.Views
             }
         }
 
-        // When selection changes: if only one item is selected and no modifier is pressed, trigger edit.
         private void FlashcardsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (FlashcardsListView == null || FlashcardsListView.SelectedItem == null)
@@ -161,7 +168,6 @@ namespace NeoCardium.Views
             if (FlashcardsListView.SelectedItem is Flashcard selectedFlashcard)
             {
                 Debug.WriteLine($"Bearbeite Flashcard: {selectedFlashcard.Question}");
-                // Automatically trigger the edit behavior on single selection.
                 EditFlashcard_Click(sender, new RoutedEventArgs());
             }
         }
@@ -170,13 +176,11 @@ namespace NeoCardium.Views
         {
             if (e.OriginalSource is FrameworkElement element && element.DataContext is Flashcard flashcard)
             {
-                // If the item under the pointer is not already selected, clear selection and select it.
                 if (!FlashcardsListView.SelectedItems.Cast<Flashcard>().Any(f => f.Id == flashcard.Id))
                 {
                     FlashcardsListView.SelectedItems.Clear();
                     FlashcardsListView.SelectedItems.Add(flashcard);
                 }
-
                 int selectedCount = FlashcardsListView.SelectedItems.Count;
                 MenuFlyout flyout = new MenuFlyout();
                 MenuFlyoutItem deleteItem = new MenuFlyoutItem
