@@ -1,61 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Page
+    x:Class="NeoCardium.Views.FlashcardsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d"
-    
     xmlns:local="using:NeoCardium.Views"
     xmlns:models="using:NeoCardium.Models"
-    
-    x:Class="NeoCardium.Views.FlashcardsPage"
+    mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <!-- Hier kommen globale Ressourcen rein -->
+    <!-- Global resources -->
     <Page.Resources>
         <MenuFlyout x:Key="FlashcardContextFlyout">
             <MenuFlyoutItem Text="Löschen"
-                        Click="DeleteFlashcard_Click"
-                        CommandParameter="{Binding}" />
+                            Click="DeleteFlashcard_Click"
+                            CommandParameter="{Binding}" />
         </MenuFlyout>
     </Page.Resources>
 
-    <!-- Hier kommt der UI-Code -->
+    <!-- UI Layout -->
     <StackPanel Orientation="Vertical" Padding="10">
-
-        <!-- Button zum Erstellen einer neuen Karteikarte -->
         <Button x:Name="AddFlashcardButton"
-            Content="Neue Karteikarte erstellen"
-            Click="AddFlashcard_Click"
-            HorizontalAlignment="Center"
-            Margin="0,0,0,10"/>
-
-        <!-- Liste der Karteikarten -->
+                Content="Neue Karteikarte erstellen"
+                Click="AddFlashcard_Click"
+                HorizontalAlignment="Center"
+                Margin="0,0,0,10"/>
         <ListView x:Name="FlashcardsListView" 
-          ItemsSource="{x:Bind Flashcards}" 
-          IsRightTapEnabled="True"
-          RightTapped="FlashcardsListView_RightTapped"
-          SelectionChanged="FlashcardsListView_SelectionChanged">
-
-            <!-- Definiere das ItemTemplate für das Layout der Einträge -->
+                  ItemsSource="{x:Bind Flashcards}" 
+                  SelectionMode="Extended"
+                  IsRightTapEnabled="True"
+                  RightTapped="FlashcardsListView_RightTapped"
+                  SelectionChanged="FlashcardsListView_SelectionChanged">
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="models:Flashcard">
-                    <ListViewItem ContextFlyout="{StaticResource FlashcardContextFlyout}">
+                    <!-- We use a container that does not override the generated container -->
                     <StackPanel Orientation="Horizontal" Padding="10">
                         <TextBlock Text="{x:Bind Question}" FontWeight="Bold"/>
                         <TextBlock Text=" | " Foreground="Gray"/>
                         <TextBlock Text="{x:Bind CorrectCount}" Foreground="Green"/>
-                        <TextBlock Text="✅ | " Foreground="Gray"/>
+                        <TextBlock Text=" ✅ | " Foreground="Gray"/>
                         <TextBlock Text="{x:Bind IncorrectCount}" Foreground="Red"/>
-                        <TextBlock Text="❌" Foreground="Gray"/>
+                        <TextBlock Text=" ❌" Foreground="Gray"/>
                     </StackPanel>
-                        </ListViewItem>
                 </DataTemplate>
             </ListView.ItemTemplate>
-
         </ListView>
     </StackPanel>
-
 </Page>
-

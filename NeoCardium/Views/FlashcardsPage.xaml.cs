@@ -19,16 +19,14 @@ namespace NeoCardium.Views
     public sealed partial class FlashcardsPage : Page
     {
         public ObservableCollection<Flashcard> Flashcards { get; private set; } = new ObservableCollection<Flashcard>();
-
         private int _selectedCategoryId;
 
         public FlashcardsPage()
         {
             this.InitializeComponent();
-            this.DataContext = this; // Binding for XAML
+            this.DataContext = this; // For XAML binding
         }
 
-        // Called when a category is selected
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             if (e.Parameter is int categoryId)
@@ -117,7 +115,7 @@ namespace NeoCardium.Views
             }
         }
 
-        // Multi-select delete for flashcards (or single, depending on selection)
+        // Delete flashcards (handles both single and multi selection)
         private async void DeleteFlashcard_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -132,7 +130,6 @@ namespace NeoCardium.Views
                     return;
                 }
 
-                // Use the shared confirmation dialog helper.
                 var result = await ConfirmationDialogHelper.ShowDeleteConfirmationDialogAsync(
                     selectedFlashcards,
                     "die Karteikarte",
@@ -155,25 +152,21 @@ namespace NeoCardium.Views
             }
         }
 
-        // Standard selection behavior: when no modifier is pressed, a single click will trigger editing.
+        // Prevent automatic edit if no modifier is pressed and only one item is selected.
         private void FlashcardsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (FlashcardsListView == null || FlashcardsListView.SelectedItem == null)
+            // If multiple items are selected or a modifier key is pressed, do nothing.
+            if (FlashcardsListView.SelectedItems.Count > 1 || KeyboardHelper.IsModifierKeyPressed())
             {
-                Debug.WriteLine("Keine Flashcard ausgewählt.");
-                return;
-            }
-
-            if (KeyboardHelper.IsModifierKeyPressed())
-            {
-                Debug.WriteLine("Modifier-Taste erkannt – Bearbeitung wird nicht geöffnet.");
+                Debug.WriteLine("Multi-select aktiv – Bearbeitung nicht automatisch gestartet.");
                 return;
             }
 
             if (FlashcardsListView.SelectedItem is Flashcard selectedFlashcard)
             {
                 Debug.WriteLine($"Bearbeite Flashcard: {selectedFlashcard.Question}");
-                EditFlashcard_Click(sender, new RoutedEventArgs());
+                // Here you might want to trigger edit only on single-click; if desired uncomment the next line:
+                // EditFlashcard_Click(sender, new RoutedEventArgs());
             }
         }
 
@@ -181,15 +174,14 @@ namespace NeoCardium.Views
         {
             if (e.OriginalSource is FrameworkElement element && element.DataContext is Flashcard flashcard)
             {
-                // If the item under the pointer is not already selected, clear selection and select it.
+                // If the item under the pointer is not already selected, clear and select it.
                 if (!FlashcardsListView.SelectedItems.Cast<Flashcard>().Any(f => f.Id == flashcard.Id))
                 {
                     FlashcardsListView.SelectedItems.Clear();
                     FlashcardsListView.SelectedItems.Add(flashcard);
                 }
 
-                var selectedCount = FlashcardsListView.SelectedItems.Count;
-                // Create a flyout with the proper text.
+                int selectedCount = FlashcardsListView.SelectedItems.Count;
                 MenuFlyout flyout = new MenuFlyout();
                 MenuFlyoutItem deleteItem = new MenuFlyoutItem
                 {

@@ -14,8 +14,8 @@ namespace NeoCardium.Helpers
         /// </summary>
         /// <typeparam name="T">The type of item to delete.</typeparam>
         /// <param name="items">The collection of items to delete.</param>
-        /// <param name="singularName">The singular name (e.g. "die Kategorie" or "die Karteikarte").</param>
-        /// <param name="pluralName">The plural name (e.g. "Kategorien" or "Karteikarten").</param>
+        /// <param name="singularName">The singular name (e.g. "die Karteikarte").</param>
+        /// <param name="pluralName">The plural name (e.g. "Karteikarten").</param>
         /// <param name="getDisplayName">A function to extract a display string from an item.</param>
         /// <param name="xamlRoot">The XamlRoot to show the dialog.</param>
         /// <returns>The ContentDialogResult of the dialog.</returns>
@@ -26,13 +26,13 @@ namespace NeoCardium.Helpers
             System.Func<T, string> getDisplayName,
             XamlRoot xamlRoot)
         {
-            var itemList = items.ToList();
-            if (itemList.Count == 0)
+            var list = items.ToList();
+            if (!list.Any())
                 return ContentDialogResult.None;
 
-            string message = itemList.Count == 1
-                ? $"Möchtest du {singularName} '{getDisplayName(itemList[0])}' wirklich löschen?"
-                : $"Möchtest du die {itemList.Count} ausgewählten {pluralName} wirklich löschen?";
+            string message = list.Count == 1
+                ? $"Möchtest du {singularName} '{getDisplayName(list[0])}' wirklich löschen?"
+                : $"Möchtest du die {list.Count} ausgewählten {pluralName} wirklich löschen?";
 
             var dialog = new ContentDialog
             {
