@@ -1,65 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Page
+    x:Class="NeoCardium.Views.MainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d"
-    
-    xmlns:local="using:NeoCardium.Views"
     xmlns:models="using:NeoCardium.Models"
-    
-    x:Class="NeoCardium.Views.MainPage"
+    mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <!-- Kontextmenü für Kategorien -->
     <Page.Resources>
-        <MenuFlyout x:Key="CategoryContextFlyout">
-            <MenuFlyoutItem Text="Bearbeiten"
-                            Click="EditCategory_Click"
-                            CommandParameter="{Binding}" />
-            <MenuFlyoutItem Text="Löschen"
-                            Click="DeleteCategory_Click"
-                            CommandParameter="{Binding}" />
+        <!-- Kontextmenü für eine einzelne Kategorie -->
+        <MenuFlyout x:Key="SingleCategoryContextFlyout">
+            <MenuFlyoutItem Text="Bearbeiten" Click="EditCategory_Click"/>
+            <MenuFlyoutItem Text="Löschen"    Click="DeleteCategory_Click"/>
+        </MenuFlyout>
+
+        <!-- Kontextmenü für mehrere ausgewählte Kategorien -->
+        <MenuFlyout x:Key="MultiCategoryContextFlyout">
+            <MenuFlyoutItem Text="Extract (Placeholder)" Click="ExtractSelectedCategories_Click"/>
+            <MenuFlyoutItem Text="Auswahl löschen"       Click="DeleteSelectedCategories_Click"/>
         </MenuFlyout>
     </Page.Resources>
 
     <Grid Padding="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <!-- Titel bleibt oben -->
             <RowDefinition Height="*"/>
-            <!-- Liste füllt den Platz -->
             <RowDefinition Height="Auto"/>
-            <!-- Button unten -->
         </Grid.RowDefinitions>
 
-        <!-- Titel -->
         <TextBlock Text="Deine Kategorien"
                    FontSize="24"
                    FontWeight="Bold"
                    Margin="0,0,0,10"/>
 
-        <!-- ListView mit Rechtsklick-Menü -->
         <ScrollViewer Grid.Row="1">
             <ListView x:Name="CategoryListView"
-                      SelectionMode="Single"
-                      ItemsSource="{x:Bind Categories, Mode=OneWay}"
+                      SelectionMode="Extended"
                       IsItemClickEnabled="True"
-                      IsRightTapEnabled="True"
                       ItemClick="CategoryListView_ItemClick"
-                      RightTapped="CategoryListView_RightTapped">
+                      RightTapped="CategoryListView_RightTapped"
+                      ItemsSource="{x:Bind ViewModel.Categories, Mode=OneWay}">
+                <!-- Kein direktes ContextFlyout mehr -->
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="models:Category">
-                        <ListViewItem ContextFlyout="{StaticResource CategoryContextFlyout}">
-                            <TextBlock Text="{x:Bind CategoryName}" FontSize="18" Margin="10,5"/>
+                        <ListViewItem>
+                            <TextBlock Text="{x:Bind CategoryName}" 
+                       FontSize="18" Margin="10,5"/>
                         </ListViewItem>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
         </ScrollViewer>
 
-        <!-- Button unten -->
         <Button Grid.Row="2"
                 Content="Neue Kategorie erstellen"
                 Click="AddCategory_Click"
