@@ -1,23 +1,20 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using NeoCardium.Models;
 using NeoCardium.Database;
 using NeoCardium.Helpers;
-using System.Text;
-using Windows.Storage;
+using NeoCardium.Models;
 using Windows.Storage.Pickers;
+using Windows.Storage;
 using WinRT.Interop;
-using Microsoft.UI.Xaml;
-using System;
-using CommunityToolkit.Mvvm.ComponentModel;
-using System.Collections.Generic;
 
 namespace NeoCardium.ViewModels
 {
-    public class ObservableObject : System.ComponentModel.INotifyPropertyChanged
+    public class CategoryPageViewModel : System.ComponentModel.INotifyPropertyChanged
     {
         public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
         protected bool SetProperty<T>(ref T storage, T value, string? propertyName = null)
@@ -33,23 +30,21 @@ namespace NeoCardium.ViewModels
         {
             PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
         }
-    }
 
-    public class MainPageViewModel : ObservableObject
-    {
         public ObservableCollection<Category> Categories { get; } = new ObservableCollection<Category>();
 
         public ICommand DeleteCategoryCommand { get; }
         public ICommand DeleteSelectedCategoriesCommand { get; }
         public ICommand ExportCategoriesCommand { get; }
-        public ICommand ImportCategoriesCommand { get; } // <--- NEW
+        public ICommand ImportCategoriesCommand { get; }
 
-        public MainPageViewModel()
+        public CategoryPageViewModel()
         {
+            // Initialize commands using a simple RelayCommand implementation.
             DeleteCategoryCommand = new RelayCommand(async (param) => await DeleteCategoryAsync(param as Category));
             DeleteSelectedCategoriesCommand = new RelayCommand(async (param) => await DeleteSelectedCategoriesAsync(param as IEnumerable<Category>));
             ExportCategoriesCommand = new RelayCommand(async (param) => await ExportCategoriesAsync(param as IEnumerable<Category>));
-            ImportCategoriesCommand = new RelayCommand(async (_) => await ImportCategoriesAsync()); // <--- NEW
+            ImportCategoriesCommand = new RelayCommand(async (_) => await ImportCategoriesAsync());
         }
 
         public async Task LoadCategoriesAsync()
@@ -61,6 +56,13 @@ namespace NeoCardium.ViewModels
                 Categories.Add(cat);
             }
             await Task.CompletedTask;
+        }
+
+        public void AddCategory(string categoryName)
+        {
+            // Add a new category; you can add further validation or persistence logic here.
+            int newId = Categories.Count > 0 ? Categories[^1].Id + 1 : 1;
+            Categories.Add(new Category { Id = newId, CategoryName = categoryName });
         }
 
         private async Task DeleteCategoryAsync(Category? category)

@@ -44,7 +44,7 @@ namespace NeoCardium.Views
                 Frame.GoBack();
             } else
             {
-                Frame.Navigate(typeof(MainPage));
+                Frame.Navigate(typeof(CategoryPage));
             }
         }
 

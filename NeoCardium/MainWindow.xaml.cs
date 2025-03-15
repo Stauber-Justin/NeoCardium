@@ -1,34 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Composition.SystemBackdrops;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-using Microsoft.UI.Windowing;
 using WinRT.Interop;
-
 using NeoCardium.Views;
-using Windows.UI.ApplicationSettings;
 using Microsoft.UI;
 using Windows.UI.Composition.Desktop;
-
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
+using System;
+using AppWindowType = Microsoft.UI.Windowing.AppWindow;
 
 namespace NeoCardium
 {
     /// <summary>
-    /// An empty window that can be used on its own or navigated to within a Frame.
+    /// MainWindow serves as the global navigation shell.
+    /// It hosts a NavigationView that routes to CategoryPage, PracticePage, and SettingsPage.
     /// </summary>
     public sealed partial class MainWindow : Window
     {
@@ -40,8 +25,8 @@ namespace NeoCardium
             this.InitializeComponent();
             EnableMica();
 
-            // Startet die App mit der Startseite
-            ContentFrame.Navigate(typeof(MainPage));
+            // Navigate to the CategoryPage by default.
+            ContentFrame.Navigate(typeof(CategoryPage));
         }
 
         private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
@@ -50,8 +35,8 @@ namespace NeoCardium
             {
                 switch (selectedItem.Tag)
                 {
-                    case "MainPage":
-                        ContentFrame.Navigate(typeof(MainPage));
+                    case "CategoryPage":
+                        ContentFrame.Navigate(typeof(CategoryPage));
                         break;
                     case "PracticePage":
                         ContentFrame.Navigate(typeof(PracticePage));
@@ -65,9 +50,8 @@ namespace NeoCardium
 
         private void EnableMica()
         {
-            if (!MicaController.IsSupported()) return; // Fallback zu Acrylic, falls nicht verfügbar
+            if (!MicaController.IsSupported()) return; // Fallback to Acrylic if not available
 
-            // Compositor holen & SystemBackdrop aktivieren
             micaController = new MicaController();
             backdropConfig = new SystemBackdropConfiguration
             {
@@ -77,8 +61,8 @@ namespace NeoCardium
 
             IntPtr hwnd = WindowNative.GetWindowHandle(this);
             WindowId windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
-            AppWindow appWindow = AppWindow.GetFromWindowId(windowId);
-            var compositor = this.Content as Microsoft.UI.Composition.ICompositionSupportsSystemBackdrop; // Richtige Konvertierung
+            AppWindowType appWindow = AppWindowType.GetFromWindowId(windowId);
+            var compositor = this.Content as Microsoft.UI.Composition.ICompositionSupportsSystemBackdrop;
 
             if (compositor != null)
             {
@@ -86,7 +70,6 @@ namespace NeoCardium
                 micaController.SetSystemBackdropConfiguration(backdropConfig);
             }
 
-            // Fenster-Events für Aktivierung & Cleanup
             this.Activated += (s, e) => backdropConfig.IsInputActive = true;
             this.Closed += (s, e) =>
             {

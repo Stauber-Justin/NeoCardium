@@ -6,6 +6,7 @@ using NeoCardium.Models;
 using NeoCardium.Database;
 using NeoCardium.Helpers;
 using System.Collections.Generic;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace NeoCardium.ViewModels
 {
