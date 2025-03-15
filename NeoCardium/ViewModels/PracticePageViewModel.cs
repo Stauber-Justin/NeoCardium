@@ -173,15 +173,16 @@ namespace NeoCardium.ViewModels
                 Debug.WriteLine($"[StartPracticeAsync] Using category ID={SelectedCategory.Id}, Name='{SelectedCategory.CategoryName}'");
 
                 // Open the QuestionCountDialog.
-                var dialog = new QuestionCountDialog();
-                dialog.XamlRoot = App._mainWindow?.Content.XamlRoot;
-                var result = await dialog.ShowAsync();
-                if (dialog.SelectedCount == null)
-                {
-                    Debug.WriteLine("[StartPracticeAsync] => User cancelled question count selection.");
-                    return;
-                }
-                int desiredCount = dialog.SelectedCount.Value; // -1 means all
+                //var dialog = new QuestionCountDialog();
+                //dialog.XamlRoot = App._mainWindow?.Content.XamlRoot;
+                //var result = await dialog.ShowAsync();
+                //if (dialog.SelectedCount == null)
+                //{
+                //    Debug.WriteLine("[StartPracticeAsync] => User cancelled question count selection.");
+                //    return;
+                //}
+                //int desiredCount = dialog.SelectedCount.Value; // -1 means all
+                int desiredCount = -1;
 
                 // Fetch all flashcards for the selected category.
                 // Note: We convert the returned collection to a List.
