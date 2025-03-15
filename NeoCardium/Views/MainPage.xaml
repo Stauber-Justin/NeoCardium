@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Page
     x:Class="NeoCardium.Views.MainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -9,13 +10,13 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Page.Resources>
-        <!-- Kontextmenü für EIN ausgewähltes Item -->
+        <!-- Kontextmenü für eine einzelne Kategorie -->
         <MenuFlyout x:Key="SingleCategoryContextFlyout">
             <MenuFlyoutItem Text="Bearbeiten" Click="EditCategory_Click"/>
             <MenuFlyoutItem Text="Löschen"    Click="DeleteCategory_Click"/>
         </MenuFlyout>
 
-        <!-- Kontextmenü für MEHRERE ausgewählte Items -->
+        <!-- Kontextmenü für mehrere ausgewählte Kategorien -->
         <MenuFlyout x:Key="MultiCategoryContextFlyout">
             <MenuFlyoutItem Text="Extract (Placeholder)" Click="ExtractSelectedCategories_Click"/>
             <MenuFlyoutItem Text="Auswahl löschen"       Click="DeleteSelectedCategories_Click"/>
@@ -40,18 +41,16 @@
                       IsItemClickEnabled="True"
                       ItemClick="CategoryListView_ItemClick"
                       RightTapped="CategoryListView_RightTapped"
-                      ItemsSource="{x:Bind Categories, Mode=OneWay}">
-
-                <!-- KEIN ContextFlyout mehr direkt am Item -->
+                      ItemsSource="{x:Bind ViewModel.Categories, Mode=OneWay}">
+                <!-- Kein direktes ContextFlyout mehr -->
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="models:Category">
                         <ListViewItem>
                             <TextBlock Text="{x:Bind CategoryName}" 
-                                       FontSize="18" Margin="10,5"/>
+                       FontSize="18" Margin="10,5"/>
                         </ListViewItem>
                     </DataTemplate>
                 </ListView.ItemTemplate>
-
             </ListView>
         </ScrollViewer>
 
