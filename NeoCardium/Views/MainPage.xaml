@@ -54,7 +54,7 @@
             </ListView>
         </ScrollViewer>
 
-        <!-- Bottom row with two buttons: "Neue Kategorie erstellen" and "Import" -->
+        <!-- Bottom row with two buttons: "Neue Kategorie erstellen", "Import" -->
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>

@@ -31,7 +31,6 @@ namespace NeoCardium.Views
 
             DebugUtility.InitializeDebugData();   // Only inserts test data when debugging
             Loaded += MainPage_Loaded; // Load Categories Async
-
         }
 
         private async void MainPage_Loaded(object sender, RoutedEventArgs e)
@@ -47,6 +46,7 @@ namespace NeoCardium.Views
                 CategoryListView.SelectedItems.Add(e.ClickedItem);
                 if (GetCategoryFromItem(e.ClickedItem) is Category cat)
                 {
+                    // Navigate to FlashcardsPage (unchanged)
                     Frame.Navigate(typeof(FlashcardsPage), cat.Id);
                 }
             }
@@ -86,7 +86,6 @@ namespace NeoCardium.Views
             return null;
         }
 
-        // Single delete using shared confirmation dialog
         private async void DeleteCategory_Click(object sender, RoutedEventArgs e)
         {
             if (CategoryListView.SelectedItems.Count == 1)
@@ -105,7 +104,6 @@ namespace NeoCardium.Views
             }
         }
 
-        // Multi delete using shared confirmation dialog
         private async void DeleteSelectedCategories_Click(object sender, RoutedEventArgs e)
         {
             var selectedCategories = CategoryListView.SelectedItems
@@ -126,7 +124,6 @@ namespace NeoCardium.Views
             }
         }
 
-        // Multi-menu "Auswahl Exportieren" handler.
         private void ExportSelectedCategories_Click(object sender, RoutedEventArgs e)
         {
             var selectedCategories = CategoryListView.SelectedItems
@@ -139,7 +136,6 @@ namespace NeoCardium.Views
             ViewModel.ExportCategoriesCommand.Execute(selectedCategories);
         }
 
-        // Single-menu "Exportieren" handler.
         private void ExportCategory_Click(object sender, RoutedEventArgs e)
         {
             if (CategoryListView.SelectedItems.Count == 1)
@@ -181,7 +177,6 @@ namespace NeoCardium.Views
             }
         }
 
-        // Single-menu "Bearbeiten" navigates like an item click.
         private void EditCategory_Click(object sender, RoutedEventArgs e)
         {
             if (CategoryListView.SelectedItems.Count == 1)
@@ -193,6 +188,5 @@ namespace NeoCardium.Views
                 }
             }
         }
-
     }
 }
