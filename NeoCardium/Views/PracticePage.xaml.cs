@@ -14,21 +14,20 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using NeoCardium.ViewModels;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
-
 namespace NeoCardium.Views
 {
     /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
+    /// PracticePage – displays the practice session UI.
     /// </summary>
     public sealed partial class PracticePage : Page
     {
+        // Use a single instance of PracticePageViewModel.
         public PracticePageViewModel ViewModel { get; }
 
         public PracticePage()
         {
             this.InitializeComponent();
+            // Instantiate the ViewModel once and assign it as DataContext.
             ViewModel = new PracticePageViewModel();
             this.DataContext = ViewModel;
         }

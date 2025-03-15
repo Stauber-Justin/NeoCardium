@@ -9,10 +9,10 @@ using NeoCardium.Helpers;
 using NeoCardium.Models;
 using NeoCardium.Database;
 using System.Windows.Input;
-using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using System.Diagnostics;
 
 namespace NeoCardium.ViewModels
 {
@@ -55,9 +55,9 @@ namespace NeoCardium.ViewModels
 
                 if (selectedAnswer.IsCorrect)
                 {
-                    if(_isRetryModeEnabled == false)
+                    if (!_isRetryModeEnabled)
                         _totalCorrect++;
-                    if(_incorrectQuestions.Contains(CurrentQuestion))
+                    if (_incorrectQuestions.Contains(CurrentQuestion))
                         _incorrectQuestions.Remove(CurrentQuestion);
                     CurrentQuestion.UpdateCorrectCount();
                     DatabaseHelper.Instance.UpdateFlashcardStats(CurrentQuestion.Id, true);
@@ -82,6 +82,7 @@ namespace NeoCardium.ViewModels
             });
             _random = new Random((int)DateTime.Now.Ticks);
             _usedQuestions = new HashSet<int>();
+            SelectedModeOption = AvailableModes.First();
             Categories = new ObservableCollection<Category>();
             Questions = new ObservableCollection<Flashcard>();
             AnswerOptions = new ObservableCollection<FlashcardAnswer>();
@@ -216,6 +217,8 @@ namespace NeoCardium.ViewModels
             try
             {
                 var categories = DatabaseHelper.Instance.GetCategories();
+                if (Debugger.IsAttached)
+                    Console.WriteLine($"[DEBUG] Found {categories.Count} categories in DB.");
                 if (categories == null || categories.Count == 0)
                 {
                     ExceptionHelper.LogError("Keine Kategorien gefunden!");
@@ -225,6 +228,12 @@ namespace NeoCardium.ViewModels
                 else
                 {
                     Categories = new ObservableCollection<Category>(categories);
+                    // If no category is currently selected, auto-select the first one.
+                    if (SelectedCategory == null && Categories.Any())
+                    {
+                        SelectedCategory = Categories.First();
+                        Console.WriteLine($"[DEBUG] Auto-selected category: {SelectedCategory.CategoryName}");
+                    }
                 }
             }
             catch (Exception ex)
@@ -284,10 +293,12 @@ namespace NeoCardium.ViewModels
             }
         }
 
-
         [RelayCommand]
         public async Task TogglePracticeSessionAsync(Category? selectedCategory)
         {
+            if (Debugger.IsAttached)
+                Console.WriteLine($"[DEBUG] TogglePracticeSessionAsync called with: {selectedCategory?.CategoryName ?? "NULL"}");
+
             try
             {
                 if (!IsSessionActive)
