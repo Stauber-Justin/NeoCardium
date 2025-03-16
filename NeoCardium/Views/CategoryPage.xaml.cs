@@ -1,42 +1,27 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
+using NeoCardium.Database;
+using NeoCardium.Helpers;
 using NeoCardium.Models;
 using NeoCardium.ViewModels;
-using NeoCardium.Helpers;
-using NeoCardium.Database;
-using System.Linq;
-using System.Diagnostics;
-using System.Collections;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using System;
-using Microsoft.UI.Xaml.Controls.Primitives;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace NeoCardium.Views
 {
-    public sealed partial class MainPage : Page
+    public sealed partial class CategoryPage : Page
     {
-        public MainPageViewModel ViewModel { get; } = new MainPageViewModel();
+        public CategoryPageViewModel ViewModel { get; } = new CategoryPageViewModel();
 
-        public MainPage()
+        public CategoryPage()
         {
             this.InitializeComponent();
             DataContext = ViewModel;
-
-            // Create a new Database instance.
-            var database = new Database.Database();
-            database.Initialize();
-
             DebugUtility.InitializeDebugData();   // Only inserts test data when debugging
-            Loaded += MainPage_Loaded; // Load Categories Async
-
-        }
-
-        private async void MainPage_Loaded(object sender, RoutedEventArgs e)
-        {
-            await ViewModel.LoadCategoriesAsync();
+            Loaded += async (s, e) => await ViewModel.LoadCategoriesAsync();
         }
 
         private void CategoryListView_ItemClick(object sender, ItemClickEventArgs e)
@@ -54,26 +39,17 @@ namespace NeoCardium.Views
 
         private void CategoryListView_RightTapped(object sender, RightTappedRoutedEventArgs e)
         {
-            if (e.OriginalSource is FrameworkElement fe && GetCategoryFromItem(fe.DataContext) is Category cat)
+            if (e.OriginalSource is FrameworkElement fe && fe.DataContext is Category)
             {
-                // If this item is not already selected, select only it.
-                if (!CategoryListView.SelectedItems.Cast<object>()
-                        .Any(item => GetCategoryFromItem(item)?.Id == cat.Id))
-                {
-                    CategoryListView.SelectedItems.Clear();
-                    CategoryListView.SelectedItems.Add(cat);
-                }
+                // Choose the appropriate context menu based on selection.
+                int selectedCount = CategoryListView.SelectedItems.Count;
+                MenuFlyout menu = (selectedCount <= 1)
+                    ? (MenuFlyout)Resources["SingleCategoryContextFlyout"]
+                    : (MenuFlyout)Resources["MultiCategoryContextFlyout"];
+
+                menu.ShowAt(fe, new FlyoutShowOptions { Position = e.GetPosition(fe) });
+                e.Handled = true;
             }
-
-            int count = CategoryListView.SelectedItems.Count;
-            if (count == 0) return;
-
-            MenuFlyout flyout = (count == 1) ?
-                (MenuFlyout)Resources["SingleCategoryContextFlyout"] :
-                (MenuFlyout)Resources["MultiCategoryContextFlyout"];
-
-            flyout.ShowAt(CategoryListView, new FlyoutShowOptions { Position = e.GetPosition(CategoryListView) });
-            e.Handled = true;
         }
 
         // Helper to extract the Category from an item (or its container)
@@ -86,7 +62,6 @@ namespace NeoCardium.Views
             return null;
         }
 
-        // Single delete using shared confirmation dialog
         private async void DeleteCategory_Click(object sender, RoutedEventArgs e)
         {
             if (CategoryListView.SelectedItems.Count == 1)
@@ -105,7 +80,6 @@ namespace NeoCardium.Views
             }
         }
 
-        // Multi delete using shared confirmation dialog
         private async void DeleteSelectedCategories_Click(object sender, RoutedEventArgs e)
         {
             var selectedCategories = CategoryListView.SelectedItems
@@ -126,20 +100,6 @@ namespace NeoCardium.Views
             }
         }
 
-        // Multi-menu "Auswahl Exportieren" handler.
-        private void ExportSelectedCategories_Click(object sender, RoutedEventArgs e)
-        {
-            var selectedCategories = CategoryListView.SelectedItems
-                .Cast<object>()
-                .Select(item => GetCategoryFromItem(item))
-                .Where(cat => cat != null)
-                .Cast<Category>()
-                .ToList();
-
-            ViewModel.ExportCategoriesCommand.Execute(selectedCategories);
-        }
-
-        // Single-menu "Exportieren" handler.
         private void ExportCategory_Click(object sender, RoutedEventArgs e)
         {
             if (CategoryListView.SelectedItems.Count == 1)
@@ -153,9 +113,16 @@ namespace NeoCardium.Views
             }
         }
 
-        private void ImportButton_Click(object sender, RoutedEventArgs e)
+        private void ExportSelectedCategories_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.ImportCategoriesCommand.Execute(null);
+            var selectedCategories = CategoryListView.SelectedItems
+                .Cast<object>()
+                .Select(item => GetCategoryFromItem(item))
+                .Where(cat => cat != null)
+                .Cast<Category>()
+                .ToList();
+
+            ViewModel.ExportCategoriesCommand.Execute(selectedCategories);
         }
 
         private async void AddCategory_Click(object sender, RoutedEventArgs e)
@@ -181,7 +148,11 @@ namespace NeoCardium.Views
             }
         }
 
-        // Single-menu "Bearbeiten" navigates like an item click.
+        private void ImportButton_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.ImportCategoriesCommand.Execute(null);
+        }
+
         private void EditCategory_Click(object sender, RoutedEventArgs e)
         {
             if (CategoryListView.SelectedItems.Count == 1)
@@ -193,6 +164,5 @@ namespace NeoCardium.Views
                 }
             }
         }
-
     }
 }

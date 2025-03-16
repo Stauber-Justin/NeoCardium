@@ -12,7 +12,7 @@
 
     <NavigationView x:Name="NavView" SelectionChanged="NavView_SelectionChanged">
         <NavigationView.MenuItems>
-            <NavigationViewItem Content="Start" Tag="MainPage">
+            <NavigationViewItem Content="Start" Tag="CategoryPage">
                 <NavigationViewItem.Icon>
                     <SymbolIcon Symbol="Home"/>
                 </NavigationViewItem.Icon>

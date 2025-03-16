@@ -1,36 +1,27 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
 using NeoCardium.ViewModels;
-
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
+using System.Diagnostics;
 
 namespace NeoCardium.Views
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
     public sealed partial class PracticePage : Page
     {
         public PracticePageViewModel ViewModel { get; }
 
         public PracticePage()
         {
-            this.InitializeComponent();
+            this.InitializeComponent(); // Make sure your XAML Build Action is set to "Page"
             ViewModel = new PracticePageViewModel();
             this.DataContext = ViewModel;
+            this.Loaded += PracticePage_Loaded;
+            Debug.WriteLine($"[PracticePage] Constructor => IsFinalStatisticsVisible={ViewModel.IsFinalStatisticsVisible}, IsSessionActive={ViewModel.IsSessionActive}");
+        }
+
+        private async void PracticePage_Loaded(object sender, RoutedEventArgs e)
+        {
+            Debug.WriteLine("[PracticePage] Loaded -> calling ViewModel.LoadCategoriesAsync()");
+            await ViewModel.LoadCategoriesAsync();
         }
     }
 }
