@@ -39,8 +39,15 @@ namespace NeoCardium.Views
 
         private void CategoryListView_RightTapped(object sender, RightTappedRoutedEventArgs e)
         {
-            if (e.OriginalSource is FrameworkElement fe && fe.DataContext is Category)
+            if (e.OriginalSource is FrameworkElement fe && fe.DataContext is Category tappedCategory)
             {
+                // If nothing is selected or the tapped item isn't selected, select it.
+                if (!CategoryListView.SelectedItems.Contains(tappedCategory))
+                {
+                    CategoryListView.SelectedItems.Clear();
+                    CategoryListView.SelectedItem = tappedCategory;
+                }
+
                 // Choose the appropriate context menu based on selection.
                 int selectedCount = CategoryListView.SelectedItems.Count;
                 MenuFlyout menu = (selectedCount <= 1)
