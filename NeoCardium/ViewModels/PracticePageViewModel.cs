@@ -93,8 +93,11 @@ namespace NeoCardium.ViewModels
             _currentQuestion = new Flashcard { Question = "Lade Frage..." };
             _answerOptions = new ObservableCollection<FlashcardAnswer>();
             _isAnswerRevealed = false;
+
             _selectedMode = PracticeMode.MultipleChoice;
-            _selectedModeOption = new PracticeModeOption { Mode = PracticeMode.MultipleChoice, ModeName = "Multiple-Choice" };
+            _selectedModeOption = AvailableModes.FirstOrDefault(m => m.Mode == PracticeMode.MultipleChoice)
+                      ?? new PracticeModeOption { Mode = PracticeMode.MultipleChoice, ModeName = "Multiple-Choice" };
+
             _feedbackMessage = string.Empty;
             _isFeedbackVisible = false;
             _isSessionActive = false;
@@ -172,20 +175,9 @@ namespace NeoCardium.ViewModels
 
                 Debug.WriteLine($"[StartPracticeAsync] Using category ID={SelectedCategory.Id}, Name='{SelectedCategory.CategoryName}'");
 
-                // Open the QuestionCountDialog.
-                //var dialog = new QuestionCountDialog();
-                //dialog.XamlRoot = App._mainWindow?.Content.XamlRoot;
-                //var result = await dialog.ShowAsync();
-                //if (dialog.SelectedCount == null)
-                //{
-                //    Debug.WriteLine("[StartPracticeAsync] => User cancelled question count selection.");
-                //    return;
-                //}
-                //int desiredCount = dialog.SelectedCount.Value; // -1 means all
+                // For now, desired count is set to all (-1).
                 int desiredCount = -1;
 
-                // Fetch all flashcards for the selected category.
-                // Note: We convert the returned collection to a List.
                 var allFlashcards = DatabaseHelper.Instance.GetFlashcardsByCategory(SelectedCategory.Id).ToList();
                 Debug.WriteLine($"[StartPracticeAsync] Fetched {allFlashcards.Count} flashcards for this category.");
 
@@ -196,11 +188,9 @@ namespace NeoCardium.ViewModels
                     return;
                 }
 
-                // Select questions based on mode.
                 List<Flashcard> selectedQuestions = SelectQuestionsForSession(allFlashcards, desiredCount, SelectedMode);
                 Debug.WriteLine($"[StartPracticeAsync] => Selected {selectedQuestions.Count} questions for the session.");
 
-                // Reset statistics and used questions.
                 _totalCorrect = 0;
                 _totalIncorrect = 0;
                 _incorrectQuestions.Clear();
@@ -210,7 +200,6 @@ namespace NeoCardium.ViewModels
                 Questions = new ObservableCollection<Flashcard>(selectedQuestions);
                 Debug.WriteLine($"[StartPracticeAsync] => Questions.Count={Questions.Count}");
 
-                // Load first question according to mode.
                 if (SelectedMode == PracticeMode.MultipleChoice)
                 {
                     Debug.WriteLine("[StartPracticeAsync] => Mode=MultipleChoice, calling LoadNextQuestionAsync()");
@@ -253,11 +242,10 @@ namespace NeoCardium.ViewModels
                     selected = selected.Take(desiredCount).ToList();
                 }
             }
-            else // Flashcard mode.
+            else
             {
                 selected = new List<Flashcard>(flashcards);
             }
-            // Shuffle the selected list using Fisher-Yates.
             int n = selected.Count;
             for (int i = 0; i < n; i++)
             {
@@ -284,6 +272,8 @@ namespace NeoCardium.ViewModels
                 else
                 {
                     Categories = new ObservableCollection<Category>(categories);
+                    // Set the selected category to the first one by default.
+                    SelectedCategory = Categories.FirstOrDefault();
                 }
             }
             catch (Exception ex)
@@ -325,6 +315,7 @@ namespace NeoCardium.ViewModels
 
         /// <summary>
         /// Resets the current session state without clearing the selected category.
+        /// Also resets the selected category to the first one (if available) and the mode to MultipleChoice.
         /// </summary>
         private void ResetPracticeSession()
         {
@@ -336,7 +327,17 @@ namespace NeoCardium.ViewModels
             IsFinalStatisticsVisible = false;
             OnPropertyChanged(nameof(IsFinalStatisticsVisible));
             OnPropertyChanged(nameof(IsSessionActive));
-            Debug.WriteLine("[ResetPracticeSession] => Session reset, category remains selected");
+
+            // Reset selection: always choose the first category, if any.
+            if (Categories != null && Categories.Count > 0)
+                SelectedCategory = Categories.First();
+
+            // Reset the practice mode option to MultipleChoice.
+            SelectedModeOption = AvailableModes.FirstOrDefault(m => m.Mode == PracticeMode.MultipleChoice)
+                                  ?? new PracticeModeOption { Mode = PracticeMode.MultipleChoice, ModeName = "Multiple-Choice" };
+            OnPropertyChanged(nameof(SelectedModeOption));
+
+            Debug.WriteLine("[ResetPracticeSession] => Session reset, category and mode reset to defaults");
         }
 
         /// <summary>
@@ -415,7 +416,6 @@ namespace NeoCardium.ViewModels
                 Debug.WriteLine($"[LoadNextQuestionAsync] => Picked question ID={nextQuestion.Id}, Q='{nextQuestion.Question}'");
                 _usedQuestions.Add(nextQuestion.Id);
                 CurrentQuestion = nextQuestion;
-                // Notify the UI that CurrentQuestion has changed.
                 OnPropertyChanged(nameof(CurrentQuestion));
                 OnPropertyChanged(nameof(CurrentQuestion.Question));
                 OnPropertyChanged(nameof(CurrentQuestion.Answer));
