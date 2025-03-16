@@ -11,36 +11,33 @@ namespace NeoCardium.Database
     /// </summary>
     public class Database
     {
-        public string DbPath { get; }
-        public string ConnectionString { get; }
-        public bool IsDebuggerAttached { get; }
+        // Pfad zur Datenbank im lokalen Anwendungsdatenverzeichnis
+        private static readonly string _appFolder = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName)
+            ?? throw new InvalidOperationException("Konnte den Speicherort des Programms nicht bestimmen.");
+
+        private static readonly string _dataFolder;
+        private static readonly string _dbPath;
+
+        static Database()
+        {
+            _dataFolder = Path.Combine(_appFolder, "Data");
+            _dbPath = Path.Combine(_dataFolder, "NeoCardium.db");
+        }
 
         public Database()
         {
-            IsDebuggerAttached = Debugger.IsAttached;
-            if (IsDebuggerAttached)
-            {
-                // When debugging, store the database in the working directory.
-                DbPath = "NeoCardium.db";
-            }
-            else
-            {
-                string appFolder = AppContext.BaseDirectory
+            string appFolder = AppContext.BaseDirectory
                     ?? throw new InvalidOperationException("Konnte den Speicherort des Programms nicht bestimmen.");
-                string dataFolder = Path.Combine(appFolder, "Data");
-                if (!Directory.Exists(dataFolder))
-                {
-                    Directory.CreateDirectory(dataFolder);
-                    ExceptionHelper.LogError($"[INFO] Data-Verzeichnis erstellt: {dataFolder}");
-                }
-                DbPath = Path.Combine(dataFolder, "NeoCardium.db");
+            if (!Directory.Exists(_dataFolder))
+            {
+                Directory.CreateDirectory(_dataFolder);
+                ExceptionHelper.LogError($"[INFO] Data-Verzeichnis erstellt: {_dataFolder}");
             }
-            ConnectionString = $"Data Source={DbPath}";
         }
 
         public SqliteConnection GetConnection()
         {
-            return new SqliteConnection(ConnectionString);
+            return new SqliteConnection($"Data Source={_dbPath}");
         }
 
         /// <summary>
@@ -50,7 +47,8 @@ namespace NeoCardium.Database
         {
             try
             {
-                bool exists = File.Exists(DbPath);
+                EnsureDatabasePathExists();
+                bool exists = File.Exists(_dbPath);
                 using var db = GetConnection();
                 db.Open();
                 if (exists)
@@ -87,11 +85,28 @@ namespace NeoCardium.Database
                 using var cmd3 = new SqliteCommand(createFlashcardAnswersTable, db);
                 cmd3.ExecuteNonQuery();
 
-                ExceptionHelper.LogError($"[SUCCESS] Datenbank erfolgreich initialisiert: {DbPath}");
+                ExceptionHelper.LogError($"[SUCCESS] Datenbank erfolgreich initialisiert: {_dbPath}");
             }
             catch (Exception ex)
             {
                 ExceptionHelper.LogError("Fehler bei der Initialisierung der Datenbank.", ex);
+            }
+        }
+
+        private static void EnsureDatabasePathExists()
+        {
+            try
+            {
+                if (!Directory.Exists(_dataFolder))
+                {
+                    Directory.CreateDirectory(_dataFolder);
+                    ExceptionHelper.LogError($"[INFO] Data-Verzeichnis erstellt: {_dataFolder}");
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHelper.LogError("Fehler beim Erstellen des Datenbankverzeichnisses.", ex);
+                throw new InvalidOperationException("Fehler beim Erstellen des Datenbankverzeichnisses.", ex);
             }
         }
     }

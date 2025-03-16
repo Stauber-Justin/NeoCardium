@@ -11,14 +11,9 @@ namespace NeoCardium.Helpers
     public static class ExceptionHelper
     {
         // Speicherort: Gleiche Struktur wie die Datenbank (neben der EXE)
-        /*private static readonly string AppFolder = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName)
+        private static readonly string AppFolder = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName)
             ?? throw new InvalidOperationException("Konnte den Speicherort des Programms nicht bestimmen.");
 
-        private static readonly string LogDirectory = Path.Combine(AppFolder, "Logs");
-        private static readonly string LogFilePath = Path.Combine(LogDirectory, "error.log");*/
-
-        // Verwende AppContext.BaseDirectory anstelle von Process.GetCurrentProcess().MainModule?.FileName
-        private static readonly string AppFolder = AppContext.BaseDirectory;
         private static readonly string LogDirectory = Path.Combine(AppFolder, "Logs");
         private static readonly string LogFilePath = Path.Combine(LogDirectory, "error.log");
 

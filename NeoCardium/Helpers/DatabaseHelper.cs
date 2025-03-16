@@ -338,7 +338,7 @@ namespace NeoCardium.Database
 
         public bool AddFlashcardAnswer(int flashcardId, string answerText, bool isCorrect)
         {
-            using var db = new SqliteConnection(_database.ConnectionString);
+            using var db = _database.GetConnection();
             db.Open();
             string insertQuery = "INSERT INTO FlashcardAnswers (FlashcardId, AnswerText, IsCorrect) VALUES (@FlashcardId, @AnswerText, @IsCorrect)";
             using var command = new SqliteCommand(insertQuery, db);
