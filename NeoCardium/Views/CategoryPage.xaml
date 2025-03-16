@@ -44,10 +44,9 @@
                       RightTapped="CategoryListView_RightTapped"
                       ItemsSource="{x:Bind ViewModel.Categories, Mode=OneWay}">
                 <ListView.ItemTemplate>
+                    <!-- Removed the explicit ListViewItem wrapper -->
                     <DataTemplate x:DataType="models:Category">
-                        <ListViewItem>
-                            <TextBlock Text="{x:Bind CategoryName}" FontSize="18" Margin="10,5"/>
-                        </ListViewItem>
+                        <TextBlock Text="{x:Bind CategoryName}" FontSize="18" Margin="10,5"/>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
