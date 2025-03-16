@@ -5,14 +5,20 @@
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>NeoCardium</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Platforms>x86;x64;ARM64</Platforms>
-    <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
-    <PublishProfile>win-$(Platform).pubxml</PublishProfile>
+    <!-- Only support 64-bit -->
+    <Platforms>x64</Platforms>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishProfile>win-x64.pubxml</PublishProfile>
     <UseWinUI>true</UseWinUI>
     <WindowsPackageType>None</WindowsPackageType>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
+    
+    <!-- Publishing properties -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -38,23 +44,22 @@
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
-  <!--
-    Defining the "Msix" ProjectCapability here allows the Single-project MSIX Packaging
-    Tools extension to be activated for this project even if the Windows App SDK Nuget
-    package has not yet been restored.
-  -->
+  <!-- Enable MSIX Packaging capability -->
   <ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
     <ProjectCapability Include="Msix" />
   </ItemGroup>
+  
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.2" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1742" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.250205002" />
   </ItemGroup>
+  
   <ItemGroup>
     <Folder Include="Services\" />
   </ItemGroup>
+  
   <ItemGroup>
     <Page Update="Views\QuestionCountDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -96,20 +101,17 @@
     </Page>
   </ItemGroup>
 
-  <!--
-    Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution
-    Explorer "Package and Publish" context menu entry to be enabled for this project even if
-    the Windows App SDK Nuget package has not yet been restored.
-  -->
+  <!-- Enable Package and Publish context menu if using MSIX tooling -->
   <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
     <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
   </PropertyGroup>
 
-  <!-- Publish Properties -->
+  <!-- Publish Properties for Debug and Release -->
   <PropertyGroup>
     <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
     <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
-    <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
-    <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">False</PublishTrimmed>
+    <!-- Disable trimming completely -->
+    <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
+  
 </Project>
