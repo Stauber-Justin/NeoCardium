@@ -72,12 +72,15 @@
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="models:Flashcard">
                     <StackPanel Orientation="Horizontal" Padding="10">
-                        <TextBlock Text="{x:Bind Question}" FontWeight="Bold"/>
-                        <TextBlock Text=" | " Foreground="Gray"/>
-                        <TextBlock Text="{x:Bind CorrectCount}" Foreground="Green"/>
-                        <TextBlock Text=" ✅ | " Foreground="Gray"/>
-                        <TextBlock Text="{x:Bind IncorrectCount}" Foreground="Red"/>
-                        <TextBlock Text=" ❌" Foreground="Gray"/>
+                        <TextBlock>
+                    <Run Text="{x:Bind CorrectCount}" Foreground="Green"/>
+                    <Run Text="✅ " Foreground="Gray"/>
+
+                    <Run Text="{x:Bind IncorrectCount}" Foreground="Red"/>
+                    <Run Text="❌ | " Foreground="Gray"/>
+
+                    <Run Text="{x:Bind Question}" FontWeight="Bold"/>
+                        </TextBlock>
                     </StackPanel>
                 </DataTemplate>
             </ListView.ItemTemplate>
