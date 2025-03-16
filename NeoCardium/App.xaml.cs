@@ -1,7 +1,5 @@
 ﻿using System;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
 using NeoCardium.Helpers;
 using NeoCardium.Database;
 
@@ -15,28 +13,34 @@ namespace NeoCardium
         {
             // Let WinUI locate assemblies, resources, etc.
             Environment.SetEnvironmentVariable("MICROSOFT_WINDOWSAPPRUNTIME_BASE_DIRECTORY", AppContext.BaseDirectory);
-
             this.InitializeComponent();
 
-            // Global error handling (optional)
+#if DEBUG && !DISABLE_XAML_GENERATED_BREAK_ON_UNHANDLED_EXCEPTION
+            UnhandledException += (sender, e) =>
+            {
+                // Log the exception details (custom logging in ExceptionHelper)
+                ExceptionHelper.LogError("Unhandled exception", e.Exception);
+                // Optionally, break in the debugger:
+                // if (System.Diagnostics.Debugger.IsAttached) System.Diagnostics.Debugger.Break();
+                e.Handled = true;
+            };
+#endif
+
             ExceptionHelper.RegisterGlobalExceptionHandling();
         }
 
         /// <summary>
         /// Called when the application is launched.
         /// </summary>
-        protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
+        protected override void OnLaunched(LaunchActivatedEventArgs args)
         {
             base.OnLaunched(args);
 
-            // 1) Create & init the DB once at startup:
+            // Initialize the database and insert debug data if needed.
             var db = new Database.Database();
             db.Initialize();
-
-            // 2) Insert debug data (categories, flashcards, etc.) if Debugger is attached:
             DebugUtility.InitializeDebugData();
 
-            // 3) Create the main window if not already:
             if (_mainWindow == null)
             {
                 _mainWindow = new MainWindow();

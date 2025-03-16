@@ -4,16 +4,14 @@ using Microsoft.UI.Composition;
 using Microsoft.UI.Composition.SystemBackdrops;
 using WinRT.Interop;
 using NeoCardium.Views;
-using Microsoft.UI;
-using Windows.UI.Composition.Desktop;
 using System;
 using AppWindowType = Microsoft.UI.Windowing.AppWindow;
+using Microsoft.UI;
 
 namespace NeoCardium
 {
     /// <summary>
     /// MainWindow serves as the global navigation shell.
-    /// It hosts a NavigationView that routes to CategoryPage, PracticePage, and SettingsPage.
     /// </summary>
     public sealed partial class MainWindow : Window
     {
@@ -25,8 +23,8 @@ namespace NeoCardium
             this.InitializeComponent();
             EnableMica();
 
-            // Navigate to the CategoryPage by default.
-            ContentFrame.Navigate(typeof(CategoryPage));
+            // Default navigation. You can change this to PracticePage if desired.
+            ContentFrame.Navigate(typeof(PracticePage));
         }
 
         private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
@@ -50,7 +48,7 @@ namespace NeoCardium
 
         private void EnableMica()
         {
-            if (!MicaController.IsSupported()) return; // Fallback to Acrylic if not available
+            if (!MicaController.IsSupported()) return;
 
             micaController = new MicaController();
             backdropConfig = new SystemBackdropConfiguration
@@ -60,9 +58,9 @@ namespace NeoCardium
             };
 
             IntPtr hwnd = WindowNative.GetWindowHandle(this);
-            WindowId windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
+            var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
             AppWindowType appWindow = AppWindowType.GetFromWindowId(windowId);
-            var compositor = this.Content as Microsoft.UI.Composition.ICompositionSupportsSystemBackdrop;
+            var compositor = this.Content as ICompositionSupportsSystemBackdrop;
 
             if (compositor != null)
             {

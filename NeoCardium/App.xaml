@@ -2,20 +2,55 @@
 <Application
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    
     xmlns:local="using:NeoCardium"
     xmlns:helps="using:NeoCardium.Helpers"
     xmlns:converters="using:NeoCardium.Converters"
-    
     x:Class="NeoCardium.App">
 
     <Application.Resources>
         <ResourceDictionary>
+            <!-- Merged dictionaries MUST be loaded first -->
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
-                <!-- Other merged dictionaries here -->
+                <!-- Other merged dictionaries can be added here -->
             </ResourceDictionary.MergedDictionaries>
-            <!-- Other app resources here -->
+
+            <!-- Theme Dictionaries for dynamic theming -->
+            <ResourceDictionary.ThemeDictionaries>
+                <!-- Light Theme: Final Fantasy VII / Kingdom Hearts inspired -->
+                <ResourceDictionary x:Key="Light">
+                    <!-- PracticePage background -->
+                    <LinearGradientBrush x:Key="PracticePageBackgroundBrush" StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#FFC2E0FF" Offset="0.0"/>
+                        <GradientStop Color="#FFDCEFFE" Offset="1.0"/>
+                    </LinearGradientBrush>
+                    <!-- Question card background -->
+                    <LinearGradientBrush x:Key="QuestionCardBackgroundBrush" StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#FFFFFFFF" Offset="0.0"/>
+                        <GradientStop Color="#FFD0E8FF" Offset="1.0"/>
+                    </LinearGradientBrush>
+                    <!-- Card border brush -->
+                    <SolidColorBrush x:Key="CardBorderBrush" Color="#FFB0C8FF"/>
+                </ResourceDictionary>
+
+                <!-- Dark Theme: Eye-friendly "Purple Dream" aesthetic -->
+                <ResourceDictionary x:Key="Dark">
+                    <LinearGradientBrush x:Key="PracticePageBackgroundBrush" StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#FF1A0033" Offset="0.0"/>
+                        <GradientStop Color="#FF330066" Offset="1.0"/>
+                    </LinearGradientBrush>
+                    <LinearGradientBrush x:Key="QuestionCardBackgroundBrush" StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#FF2D003D" Offset="0.0"/>
+                        <GradientStop Color="#FF4B0060" Offset="1.0"/>
+                    </LinearGradientBrush>
+                    <SolidColorBrush x:Key="CardBorderBrush" Color="#FF8A2BBF"/>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+
+            <!-- Global Theme Shadow for card elements -->
+            <ThemeShadow x:Key="Shadow32"/>
+
+            <!-- Converters -->
             <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
             <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityInvertedConverter"/>
             <converters:BooleanToStartCancelConverter x:Key="BooleanToStartCancelConverter"/>
@@ -24,6 +59,114 @@
             <converters:EnumToVisibilityConverter x:Key="BooleanToAnswerTextConverter"/>
             <converters:BooleanInverterConverter x:Key="BooleanInverterConverter"/>
             <converters:MultiBooleanToVisibilityConverter x:Key="MultiBooleanToVisibilityConverter"/>
+
+            <!-- Button Style Resources for Answer Buttons -->
+            <LinearGradientBrush x:Key="AnswerButtonBackgroundBrush" StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#7F00FF" Offset="0"/>
+                <GradientStop Color="#E100FF" Offset="1"/>
+            </LinearGradientBrush>
+            <LinearGradientBrush x:Key="AnswerButtonHoverBrush" StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#9F30FF" Offset="0"/>
+                <GradientStop Color="#F120FF" Offset="1"/>
+            </LinearGradientBrush>
+            <LinearGradientBrush x:Key="AnswerButtonPressedBrush" StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#5F00CF" Offset="0"/>
+                <GradientStop Color="#C000DF" Offset="1"/>
+            </LinearGradientBrush>
+
+            <!-- Optimized AnswerButtonStyle with animations and composition shadow -->
+            <Style x:Key="AnswerButtonStyle" TargetType="Button">
+                <Setter Property="Padding" Value="14,8"/>
+                <Setter Property="FontSize" Value="18"/>
+                <Setter Property="CornerRadius" Value="12"/>
+                <Setter Property="Margin" Value="10"/>
+                <Setter Property="BorderThickness" Value="2"/>
+                <Setter Property="Background" Value="{StaticResource AnswerButtonBackgroundBrush}"/>
+                <Setter Property="BorderBrush" Value="#AAFFFFFF"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="UseSystemFocusVisuals" Value="False"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid>
+                                <Border x:Name="Container"
+                                        Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        CornerRadius="{TemplateBinding CornerRadius}"
+                                        RenderTransformOrigin="0.5,0.5"
+                                        Shadow="{StaticResource Shadow32}">
+                                    <Border.RenderTransform>
+                                        <CompositeTransform/>
+                                    </Border.RenderTransform>
+                                    <ContentPresenter HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"/>
+                                </Border>
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal"/>
+                                        <VisualState x:Name="PointerOver">
+                                            <Storyboard>
+                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Container"
+                                                                               Storyboard.TargetProperty="Background">
+                                                    <DiscreteObjectKeyFrame KeyTime="0"
+                                                                            Value="{StaticResource AnswerButtonHoverBrush}"/>
+                                                </ObjectAnimationUsingKeyFrames>
+                                                <DoubleAnimation Storyboard.TargetName="Container"
+                                                                 Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleX)"
+                                                                 To="1.05"
+                                                                 Duration="0:0:0.2"/>
+                                                <DoubleAnimation Storyboard.TargetName="Container"
+                                                                 Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleY)"
+                                                                 To="1.05"
+                                                                 Duration="0:0:0.2"/>
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <Storyboard>
+                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Container"
+                                                                               Storyboard.TargetProperty="Background">
+                                                    <DiscreteObjectKeyFrame KeyTime="0"
+                                                                            Value="{StaticResource AnswerButtonPressedBrush}"/>
+                                                </ObjectAnimationUsingKeyFrames>
+                                                <DoubleAnimation Storyboard.TargetName="Container"
+                                                                 Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleX)"
+                                                                 To="0.95"
+                                                                 Duration="0:0:0.1"/>
+                                                <DoubleAnimation Storyboard.TargetName="Container"
+                                                                 Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleY)"
+                                                                 To="0.95"
+                                                                 Duration="0:0:0.1"/>
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Disabled">
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Container"
+                                                                 Storyboard.TargetProperty="Opacity"
+                                                                 To="0.5"
+                                                                 Duration="0:0:0.3"/>
+                                            </Storyboard>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- PracticeCardStyle: used for question cards and final stats overlays -->
+            <Style x:Key="PracticeCardStyle" TargetType="Border">
+                <Setter Property="Padding" Value="20"/>
+                <Setter Property="CornerRadius" Value="16"/>
+                <Setter Property="BorderThickness" Value="2"/>
+                <Setter Property="BorderBrush" Value="{ThemeResource CardBorderBrush}"/>
+                <Setter Property="Background" Value="{ThemeResource QuestionCardBackgroundBrush}"/>
+                <Setter Property="Margin" Value="10"/>
+            </Style>
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>

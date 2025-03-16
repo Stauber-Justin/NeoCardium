@@ -11,7 +11,7 @@ namespace NeoCardium.Views
 
         public PracticePage()
         {
-            this.InitializeComponent(); // Make sure your XAML Build Action is set to "Page"
+            this.InitializeComponent();
             ViewModel = new PracticePageViewModel();
             this.DataContext = ViewModel;
             this.Loaded += PracticePage_Loaded;
@@ -22,6 +22,12 @@ namespace NeoCardium.Views
         {
             Debug.WriteLine("[PracticePage] Loaded -> calling ViewModel.LoadCategoriesAsync()");
             await ViewModel.LoadCategoriesAsync();
+        }
+
+        private void TamagotchiButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Placeholder for future Tamagotchi interactions.
+            Debug.WriteLine("[PracticePage] Tamagotchi button clicked.");
         }
     }
 }
