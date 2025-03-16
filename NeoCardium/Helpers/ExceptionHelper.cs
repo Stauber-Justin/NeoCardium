@@ -114,8 +114,8 @@ namespace NeoCardium.Helpers
         public static async Task LogErrorAsync(string message, Exception? ex = null, [CallerMemberName] string caller = "")
         {
             // TODO: In Release-Builds könntest du Logging deaktivieren, je nach Anforderung(Einstellung).
-            if (!Debugger.IsAttached)
-                return;
+            //if (!Debugger.IsAttached)
+            //    return;
 
             try
             {
@@ -144,8 +144,8 @@ namespace NeoCardium.Helpers
         public static void LogError(string message, Exception? ex = null, [CallerMemberName] string caller = "")
         {
             // TODO: In Release-Builds könntest du Logging deaktivieren, je nach Anforderung(Einstellung).
-            if (!Debugger.IsAttached)
-                return;
+            //if (!Debugger.IsAttached)
+            //    return;
 
             try
             {
