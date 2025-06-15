@@ -100,6 +100,36 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </StackPanel>
+
+                <!-- Timed-Modus (Multiple Choice mit Timer) -->
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top" Padding="20"
+                            Visibility="{Binding SelectedMode, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Timed}">
+                    <TextBlock Text="{Binding TimeLeft}" FontSize="20" Foreground="LightBlue" HorizontalAlignment="Center"/>
+                    <ItemsControl ItemsSource="{Binding AnswerOptions}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <VariableSizedWrapGrid MaximumRowsOrColumns="2" Orientation="Horizontal" HorizontalAlignment="Center"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Content="{Binding AnswerText}"
+                                            Command="{Binding DataContext.CheckAnswerAsync, ElementName=PracticePageView}"
+                                            CommandParameter="{Binding}"
+                                            Padding="20,10"
+                                            Margin="10, 15, 0, 0"
+                                            FontSize="18"
+                                            Background="#292929"
+                                            Foreground="White"
+                                            BorderBrush="LightBlue"
+                                            BorderThickness="2"
+                                            CornerRadius="15"
+                                            HorizontalAlignment="Stretch"
+                                            MinWidth="250"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
             </Grid>
 
             <!-- Flashcard-Modus -->
@@ -121,6 +151,13 @@
                                FontSize="22" FontWeight="Bold" Foreground="White" 
                                TextWrapping="Wrap" HorizontalAlignment="Center"/>
                 </Border>
+            </StackPanel>
+
+            <!-- TypedAnswer-Modus -->
+            <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Top" Spacing="10"
+                        Visibility="{Binding SelectedMode, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=TypedAnswer}">
+                <TextBox Text="{Binding TypedUserAnswer, Mode=TwoWay}" Width="300" PlaceholderText="Antwort eingeben"/>
+                <Button Content="Prüfen" Command="{Binding CheckTypedAnswerAsync}" Width="150" IsEnabled="{Binding IsNotProcessing}"/>
             </StackPanel>
         </Grid>
 
