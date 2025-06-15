@@ -43,7 +43,7 @@
                 <DataTemplate x:DataType="models:FlashcardAnswer">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="✔"
-                       Foreground="Green"
+                       Foreground="{StaticResource CorrectBrush}"
                        Margin="0,0,5,0"
                        Visibility="{x:Bind IsCorrect, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                         <TextBlock Text="{x:Bind AnswerText, Mode=OneWay}" FontSize="16"/>

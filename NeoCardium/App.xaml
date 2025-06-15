@@ -24,6 +24,16 @@
             <converters:EnumToVisibilityConverter x:Key="BooleanToAnswerTextConverter"/>
             <converters:BooleanInverterConverter x:Key="BooleanInverterConverter"/>
             <converters:MultiBooleanToVisibilityConverter x:Key="MultiBooleanToVisibilityConverter"/>
+
+            <!-- Default color resources -->
+            <SolidColorBrush x:Key="CardBackgroundBrush" Color="#1E1E1E"/>
+            <SolidColorBrush x:Key="OptionBackgroundBrush" Color="#292929"/>
+            <SolidColorBrush x:Key="AccentBrush" Color="LightBlue"/>
+            <SolidColorBrush x:Key="StatsBorderBrush" Color="#606060"/>
+            <SolidColorBrush x:Key="DangerBrush" Color="HotPink"/>
+            <SolidColorBrush x:Key="CorrectBrush" Color="LightGreen"/>
+            <SolidColorBrush x:Key="IncorrectBrush" Color="OrangeRed"/>
+            <SolidColorBrush x:Key="SecondaryBrush" Color="Gray"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
