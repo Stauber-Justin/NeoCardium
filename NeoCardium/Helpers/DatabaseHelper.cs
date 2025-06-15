@@ -462,5 +462,91 @@ namespace NeoCardium.Database
         }
 
         #endregion
+
+        #region Gamification Operations
+
+        private void EnsureGamificationTable(SqliteConnection db)
+        {
+            const string createTable = @"CREATE TABLE IF NOT EXISTS GamificationStats (
+                                        Id INTEGER PRIMARY KEY CHECK (Id = 1),
+                                        Points INTEGER NOT NULL DEFAULT 0,
+                                        Streak INTEGER NOT NULL DEFAULT 0,
+                                        Badges TEXT)";
+            using var cmd = new SqliteCommand(createTable, db);
+            cmd.ExecuteNonQuery();
+        }
+
+        public GamificationStats GetGamificationStats()
+        {
+            try
+            {
+                using var db = _database.GetConnection();
+                db.Open();
+                EnsureGamificationTable(db);
+
+                const string query = "SELECT Points, Streak, Badges FROM GamificationStats WHERE Id = 1";
+                using var cmd = new SqliteCommand(query, db);
+                using var reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    var stats = new GamificationStats
+                    {
+                        Points = reader.GetInt32(0),
+                        Streak = reader.GetInt32(1),
+                        Badges = new ObservableCollection<string>((reader.IsDBNull(2) ? string.Empty : reader.GetString(2)).Split(',', StringSplitOptions.RemoveEmptyEntries))
+                    };
+                    return stats;
+                }
+                else
+                {
+                    var stats = new GamificationStats();
+                    SaveGamificationStats(stats);
+                    return stats;
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHelper.LogError("Fehler beim Laden der Gamification-Daten.", ex);
+                return new GamificationStats();
+            }
+        }
+
+        private void SaveGamificationStats(GamificationStats stats)
+        {
+            using var db = _database.GetConnection();
+            db.Open();
+            EnsureGamificationTable(db);
+
+            const string query = "INSERT OR REPLACE INTO GamificationStats (Id, Points, Streak, Badges) VALUES (1, @Points, @Streak, @Badges)";
+            using var cmd = new SqliteCommand(query, db);
+            cmd.Parameters.AddWithValue("@Points", stats.Points);
+            cmd.Parameters.AddWithValue("@Streak", stats.Streak);
+            cmd.Parameters.AddWithValue("@Badges", string.Join(',', stats.Badges));
+            cmd.ExecuteNonQuery();
+        }
+
+        public List<string> AddSessionResult(int correctAnswers, bool perfectSession)
+        {
+            var stats = GetGamificationStats();
+            stats.Points += correctAnswers;
+            stats.Streak = perfectSession ? stats.Streak + 1 : 0;
+
+            var newBadges = new List<string>();
+            if (stats.Points >= 50 && !stats.Badges.Contains("Rookie"))
+            {
+                stats.Badges.Add("Rookie");
+                newBadges.Add("Rookie");
+            }
+            if (stats.Points >= 200 && !stats.Badges.Contains("Pro"))
+            {
+                stats.Badges.Add("Pro");
+                newBadges.Add("Pro");
+            }
+
+            SaveGamificationStats(stats);
+            return newBadges;
+        }
+
+        #endregion
     }
 }
