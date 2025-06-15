@@ -24,6 +24,12 @@
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
 
+            <NavigationViewItem x:Uid="NavItem_Stats" Tag="StatsPage">
+                <NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="Preview"/>
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+
             <NavigationViewItem x:Uid="NavItem_Settings" Tag="SettingsPage">
                 <NavigationViewItem.Icon>
                     <SymbolIcon Symbol="Setting"/>

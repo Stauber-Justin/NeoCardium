@@ -379,12 +379,85 @@ namespace NeoCardium.Database
                 using var command = new SqliteCommand(query, db);
                 command.Parameters.AddWithValue("@FlashcardId", flashcardId);
                 command.ExecuteNonQuery();
+
+                string insertStat = "INSERT INTO FlashcardStats (FlashcardId, IsCorrect, AnswerDate) VALUES (@FlashcardId, @IsCorrect, @AnswerDate)";
+                using var statCmd = new SqliteCommand(insertStat, db);
+                statCmd.Parameters.AddWithValue("@FlashcardId", flashcardId);
+                statCmd.Parameters.AddWithValue("@IsCorrect", isCorrect ? 1 : 0);
+                statCmd.Parameters.AddWithValue("@AnswerDate", DateTime.UtcNow.ToString("o"));
+                statCmd.ExecuteNonQuery();
                 return true;
             }
             catch (Exception ex)
             {
                 ExceptionHelper.LogError("Fehler beim Aktualisieren der Statistik.", ex);
                 return false;
+            }
+        }
+
+        public bool ResetStatistics()
+        {
+            try
+            {
+                using var db = _database.GetConnection();
+                db.Open();
+                using var cmd = new SqliteCommand("DELETE FROM FlashcardStats", db);
+                cmd.ExecuteNonQuery();
+                using var resetCmd = new SqliteCommand("UPDATE Flashcards SET CorrectCount = 0, IncorrectCount = 0", db);
+                resetCmd.ExecuteNonQuery();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ExceptionHelper.LogError("Fehler beim Zurücksetzen der Statistik.", ex);
+                return false;
+            }
+        }
+
+        public List<DailyStat> GetDailyStatistics()
+        {
+            var stats = new List<DailyStat>();
+            try
+            {
+                using var db = _database.GetConnection();
+                db.Open();
+                string query = "SELECT date(AnswerDate) as Day, SUM(case when IsCorrect=1 then 1 else 0 end), SUM(case when IsCorrect=0 then 1 else 0 end) FROM FlashcardStats GROUP BY Day ORDER BY Day";
+                using var command = new SqliteCommand(query, db);
+                using var reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    stats.Add(new DailyStat
+                    {
+                        Date = DateTime.Parse(reader.GetString(0)),
+                        Correct = reader.GetInt32(1),
+                        Incorrect = reader.GetInt32(2)
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHelper.LogError("Fehler beim Abrufen der Statistik.", ex);
+            }
+            return stats;
+        }
+
+        public string ExportStatisticsCsv()
+        {
+            try
+            {
+                var stats = GetDailyStatistics();
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine("Date,Correct,Incorrect");
+                foreach (var s in stats)
+                {
+                    sb.AppendLine($"{s.Date:yyyy-MM-dd},{s.Correct},{s.Incorrect}");
+                }
+                return sb.ToString();
+            }
+            catch (Exception ex)
+            {
+                ExceptionHelper.LogError("Fehler beim Exportieren der Statistik.", ex);
+                return string.Empty;
             }
         }
 
