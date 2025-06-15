@@ -94,6 +94,20 @@ Das Projekt ist nach dem **MVVM-Pattern** strukturiert:
 
 ---
 
+## **📦 Veröffentlichung im Microsoft Store**
+Nutze das GitHub Actions-Workflow **Build MSIX Package**, um ein
+signierbares MSIX-Paket zu erzeugen:
+
+```sh
+dotnet publish NeoCardium/NeoCardium.csproj -c Release -p:WindowsPackageType=MSIX -p:GenerateAppxPackageOnBuild=true
+```
+
+1. Lade das Workflow-Artefakt herunter.
+2. Signiere das Paket mit deinem Zertifikat.
+3. Lade das signierte MSIX im [Microsoft Partner Center](https://partner.microsoft.com/) hoch.
+
+---
+
 ## **📜 Changelog**
 ### **Version 1.0.0 – Erste stabile Version**
 - 🚀 **MVP mit SQLite & WinUI 3 fertiggestellt**

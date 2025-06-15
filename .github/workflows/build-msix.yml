@@ -1,0 +1,26 @@
+name: Build MSIX Package
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+      - name: Restore
+        run: dotnet restore NeoCardium.sln
+      - name: Publish MSIX
+        run: dotnet publish NeoCardium/NeoCardium.csproj -c Release -p:WindowsPackageType=MSIX -p:GenerateAppxPackageOnBuild=true
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: msix-package
+          path: '**/*.msix'
