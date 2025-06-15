@@ -41,6 +41,9 @@ namespace NeoCardium
                     case "PracticePage":
                         ContentFrame.Navigate(typeof(PracticePage));
                         break;
+                    case "StatsPage":
+                        ContentFrame.Navigate(typeof(StatsPage));
+                        break;
                     case "SettingsPage":
                         ContentFrame.Navigate(typeof(SettingsPage));
                         break;

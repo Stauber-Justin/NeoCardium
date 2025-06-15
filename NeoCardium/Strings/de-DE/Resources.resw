@@ -6,6 +6,9 @@
   <data name="NavItem_Practice.Content" xml:space="preserve">
     <value>Lernmodus</value>
   </data>
+  <data name="NavItem_Stats.Content" xml:space="preserve">
+    <value>Statistik</value>
+  </data>
   <data name="NavItem_Settings.Content" xml:space="preserve">
     <value>Einstellungen</value>
   </data>
