@@ -10,7 +10,7 @@
   <Identity
     Name="03d0fd0a-60c0-4143-8347-4a584d8b8790"
     Publisher="CN=Numbo"
-    Version="1.0.0.0" />
+    Version="1.0.1.0" />
 
   <mp:PhoneIdentity PhoneProductId="03d0fd0a-60c0-4143-8347-4a584d8b8790" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
@@ -37,10 +37,10 @@
         DisplayName="NeoCardium"
         Description="NeoCardium"
         BackgroundColor="transparent"
-        Square150x150Logo="Assets\Square150x150Logo.png"
-        Square44x44Logo="Assets\Square44x44Logo.png">
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
-        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+        Square150x150Logo="Assets\Square150x150Logo.scale-200.png"
+        Square44x44Logo="Assets\Square44x44Logo.scale-200.png">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.scale-200.png" />
+        <uap:SplashScreen Image="Assets\SplashScreen.scale-200.png" />
       </uap:VisualElements>
     </Application>
   </Applications>
