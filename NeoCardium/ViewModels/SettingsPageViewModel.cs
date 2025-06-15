@@ -2,6 +2,7 @@ using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.UI.Xaml;
 using Windows.Storage;
+using NeoCardium.Services;
 
 namespace NeoCardium.ViewModels
 {
@@ -12,6 +13,8 @@ namespace NeoCardium.ViewModels
         private const string ThemeKey = "AppTheme";
         private const string StatsKey = "ShowStatistics";
         private const string LicenseKey = "LicenseStatus";
+        private const string ReminderEnabledKey = "ReminderEnabled";
+        private const string ReminderTimeKey = "ReminderTime";
 
         private string _selectedTheme = "Default";
         public string SelectedTheme
@@ -39,6 +42,44 @@ namespace NeoCardium.ViewModels
                 if (SetProperty(ref _showStatistics, value))
                 {
                     localSettings.Values[StatsKey] = value;
+                }
+            }
+        }
+
+        private bool _reminderEnabled;
+        public bool ReminderEnabled
+        {
+            get => _reminderEnabled;
+            set
+            {
+                if (SetProperty(ref _reminderEnabled, value))
+                {
+                    localSettings.Values[ReminderEnabledKey] = value;
+                    if (value)
+                    {
+                        ReminderService.ScheduleDailyReminder(ReminderTime);
+                    }
+                    else
+                    {
+                        ReminderService.CancelReminder();
+                    }
+                }
+            }
+        }
+
+        private TimeSpan _reminderTime = new(9, 0, 0);
+        public TimeSpan ReminderTime
+        {
+            get => _reminderTime;
+            set
+            {
+                if (SetProperty(ref _reminderTime, value))
+                {
+                    localSettings.Values[ReminderTimeKey] = value.ToString();
+                    if (ReminderEnabled)
+                    {
+                        ReminderService.ScheduleDailyReminder(value);
+                    }
                 }
             }
         }
@@ -71,6 +112,16 @@ namespace NeoCardium.ViewModels
             if (localSettings.Values.TryGetValue(LicenseKey, out var licObj) && licObj is string storedLicense)
             {
                 _licenseStatus = storedLicense;
+            }
+
+            if (localSettings.Values.TryGetValue(ReminderEnabledKey, out var remEnabledObj) && remEnabledObj is bool storedEnabled)
+            {
+                _reminderEnabled = storedEnabled;
+            }
+
+            if (localSettings.Values.TryGetValue(ReminderTimeKey, out var remTimeObj) && remTimeObj is string storedTime && TimeSpan.TryParse(storedTime, out var span))
+            {
+                _reminderTime = span;
             }
         }
     }
