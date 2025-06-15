@@ -1,21 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Page
+    x:Class="NeoCardium.Views.SettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    
-    xmlns:local="using:NeoCardium.Views"
-    
-    x:Class="NeoCardium.Views.SettingsPage"
+    xmlns:vm="using:NeoCardium.ViewModels"
+    x:DataType="vm:SettingsPageViewModel"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <Grid>
-        <TextBlock Text="Einstellungen: Hier kannst du dein Design anpassen!" 
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontSize="24"
-                   FontWeight="Bold"/>
-    </Grid>
+    <StackPanel Padding="20" Spacing="20">
+        <TextBlock Text="Einstellungen" FontSize="24" FontWeight="Bold"/>
+
+        <!-- Theme selection -->
+        <StackPanel>
+            <TextBlock Text="Theme" FontWeight="SemiBold" Margin="0,10,0,5"/>
+            <ComboBox SelectedValue="{x:Bind ViewModel.SelectedTheme, Mode=TwoWay}" SelectedValuePath="Tag" Width="200">
+                <ComboBoxItem Content="System" Tag="Default"/>
+                <ComboBoxItem Content="Hell" Tag="Light"/>
+                <ComboBoxItem Content="Dunkel" Tag="Dark"/>
+            </ComboBox>
+        </StackPanel>
+
+        <!-- General preferences -->
+        <StackPanel>
+            <TextBlock Text="Allgemein" FontWeight="SemiBold" Margin="0,10,0,5"/>
+            <CheckBox Content="Statistik anzeigen" IsChecked="{x:Bind ViewModel.ShowStatistics, Mode=TwoWay}"/>
+        </StackPanel>
+
+        <!-- Premium / Account section -->
+        <StackPanel>
+            <TextBlock Text="Konto" FontWeight="SemiBold" Margin="0,10,0,5"/>
+            <TextBlock Text="{x:Bind ViewModel.LicenseStatus}"/>
+        </StackPanel>
+    </StackPanel>
 </Page>
