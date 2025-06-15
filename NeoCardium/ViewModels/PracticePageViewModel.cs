@@ -49,6 +49,9 @@ namespace NeoCardium.ViewModels
         private int _totalCorrect;
         private int _totalIncorrect;
 
+        private GamificationStats _stats;
+        private string _achievementMessage;
+
         // Data collections and current state.
         private ObservableCollection<Category> _categories;
         private Category? _selectedCategory;
@@ -110,6 +113,8 @@ namespace NeoCardium.ViewModels
             _isSessionActive = false;
             _isRetryModeEnabled = false;
             _isFinalStatisticsVisible = false;
+            _stats = DatabaseHelper.Instance.GetGamificationStats();
+            _achievementMessage = string.Empty;
             IsProcessingAnswer = false;
 
             // Command to process answer clicks.
@@ -681,6 +686,10 @@ namespace NeoCardium.ViewModels
                 OnPropertyChanged(nameof(TotalCorrect));
                 OnPropertyChanged(nameof(TotalAnswered));
 
+                var newBadges = DatabaseHelper.Instance.AddSessionResult(TotalCorrect, TotalIncorrect == 0);
+                Stats = DatabaseHelper.Instance.GetGamificationStats();
+                AchievementMessage = newBadges.Count > 0 ? $"Neue Abzeichen: {string.Join(", ", newBadges)}" : string.Empty;
+
                 await Task.Delay(500);
             }
             catch (Exception ex)
@@ -784,6 +793,18 @@ namespace NeoCardium.ViewModels
         }
 
         public int TotalAnswered => TotalCorrect + TotalIncorrect;
+
+        public GamificationStats Stats
+        {
+            get => _stats;
+            set => SetProperty(ref _stats, value);
+        }
+
+        public string AchievementMessage
+        {
+            get => _achievementMessage;
+            set => SetProperty(ref _achievementMessage, value);
+        }
 
         public string FeedbackMessage
         {

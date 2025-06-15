@@ -24,6 +24,7 @@
             <converters:EnumToVisibilityConverter x:Key="BooleanToAnswerTextConverter"/>
             <converters:BooleanInverterConverter x:Key="BooleanInverterConverter"/>
             <converters:MultiBooleanToVisibilityConverter x:Key="MultiBooleanToVisibilityConverter"/>
+            <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
 
             <!-- Default color resources -->
             <SolidColorBrush x:Key="CardBackgroundBrush" Color="#1E1E1E"/>

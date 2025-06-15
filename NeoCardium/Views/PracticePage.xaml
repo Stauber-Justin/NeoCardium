@@ -28,6 +28,13 @@
             <!-- row=2 -->
         </Grid.RowDefinitions>
 
+        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="20">
+            <TextBlock Text="🏆 Punkte:" Foreground="LightBlue" FontSize="18"/>
+            <TextBlock Text="{Binding Stats.Points}" Foreground="LightBlue" FontSize="18" FontWeight="Bold" Margin="5,0,20,0"/>
+            <TextBlock Text="🔥 Streak:" Foreground="Orange" FontSize="18"/>
+            <TextBlock Text="{Binding Stats.Streak}" Foreground="Orange" FontSize="18" FontWeight="Bold" Margin="5,0,0,0"/>
+        </StackPanel>
+
         <!-- row 1: Kategorie- und Modus-Auswahl -->
         <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center"
                     Visibility="{Binding IsCategorySelectionVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -199,6 +206,10 @@
                              Foreground="{StaticResource AccentBrush}"
                              CornerRadius="5"
                              HorizontalAlignment="Center"/>
+                <TextBlock Text="{Binding AchievementMessage}"
+                           Foreground="LightBlue" FontSize="18" FontWeight="Bold"
+                           Visibility="{Binding AchievementMessage, Converter={StaticResource StringToVisibilityConverter}}"
+                           HorizontalAlignment="Center"/>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
                     <Button Content="🔄 Erneut üben"
                             Command="{Binding RestartSessionCommand}"
