@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using NeoCardium.Helpers;
 using NeoCardium.Database;
+using NeoCardium.Services;
 using Windows.Storage;
 
 namespace NeoCardium
@@ -73,17 +74,28 @@ namespace NeoCardium
                 _mainWindow.Activate();
             }
 
-            var localSettings = ApplicationData.Current.LocalSettings;
+            var settings = ApplicationData.Current.LocalSettings;
             bool isFirstLaunch = false;
-            if (!localSettings.Values.ContainsKey(FirstLaunchKey))
+            
+            if (!settings.Values.ContainsKey(FirstLaunchKey))
             {
                 isFirstLaunch = true;
-                localSettings.Values[FirstLaunchKey] = true;
+                settings.Values[FirstLaunchKey] = true;
             }
 
             if (isFirstLaunch)
             {
                 _mainWindow.NavigateToTutorial();
+            }
+            
+            if (settings.Values.TryGetValue("ReminderEnabled", out var enabledObj) && enabledObj is bool enabled && enabled)
+            {
+                TimeSpan time = new(9, 0, 0);
+                if (settings.Values.TryGetValue("ReminderTime", out var timeObj) && timeObj is string timeStr && TimeSpan.TryParse(timeStr, out var parsed))
+                {
+                    time = parsed;
+                }
+                ReminderService.ScheduleDailyReminder(time);
             }
         }
     }
