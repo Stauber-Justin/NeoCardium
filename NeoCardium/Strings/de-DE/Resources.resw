@@ -57,4 +57,22 @@
   <data name="CategoryDialog_SaveError.Text" xml:space="preserve">
     <value>Unerwarteter Fehler beim Speichern.</value>
   </data>
+  <data name="SettingsPage_ReplayTutorialButton.Content" xml:space="preserve">
+    <value>Tutorial anzeigen</value>
+  </data>
+  <data name="TutorialPage_Step1.Title" xml:space="preserve">
+    <value>Kategorien erstellen</value>
+  </data>
+  <data name="TutorialPage_Step1.Subtitle" xml:space="preserve">
+    <value>Lege Kategorien an, um deine Karten zu ordnen.</value>
+  </data>
+  <data name="TutorialPage_Step2.Title" xml:space="preserve">
+    <value>Lernen starten</value>
+  </data>
+  <data name="TutorialPage_Step2.Subtitle" xml:space="preserve">
+    <value>Wähle eine Kategorie und beginne mit dem Lernen.</value>
+  </data>
+  <data name="TutorialPage_FinishButton.Content" xml:space="preserve">
+    <value>Los geht's</value>
+  </data>
 </root>

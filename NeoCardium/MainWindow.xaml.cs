@@ -77,5 +77,15 @@ namespace NeoCardium
                 micaController = null;
             };
         }
+
+        public void NavigateToTutorial()
+        {
+            ContentFrame.Navigate(typeof(TutorialPage));
+        }
+
+        public void NavigateToCategory()
+        {
+            ContentFrame.Navigate(typeof(CategoryPage));
+        }
     }
 }

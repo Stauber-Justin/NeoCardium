@@ -54,5 +54,10 @@ namespace NeoCardium.Views
                 Windows.ApplicationModel.Resources.Core.ResourceContext.GetForCurrentView().Reset();
             }
         }
+
+        private void ReplayTutorial_Click(object sender, RoutedEventArgs e)
+        {
+            App._mainWindow?.NavigateToTutorial();
+        }
     }
 }

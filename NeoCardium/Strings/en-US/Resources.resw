@@ -57,4 +57,22 @@
   <data name="CategoryDialog_SaveError.Text" xml:space="preserve">
     <value>Unexpected error while saving.</value>
   </data>
+  <data name="SettingsPage_ReplayTutorialButton.Content" xml:space="preserve">
+    <value>Show Tutorial</value>
+  </data>
+  <data name="TutorialPage_Step1.Title" xml:space="preserve">
+    <value>Create Categories</value>
+  </data>
+  <data name="TutorialPage_Step1.Subtitle" xml:space="preserve">
+    <value>Add categories to organize your flashcards.</value>
+  </data>
+  <data name="TutorialPage_Step2.Title" xml:space="preserve">
+    <value>Start Practice</value>
+  </data>
+  <data name="TutorialPage_Step2.Subtitle" xml:space="preserve">
+    <value>Select a category and begin practicing.</value>
+  </data>
+  <data name="TutorialPage_FinishButton.Content" xml:space="preserve">
+    <value>Get Started</value>
+  </data>
 </root>
