@@ -70,12 +70,21 @@ namespace NeoCardium.Database
                                     IsCorrect INTEGER NOT NULL CHECK (IsCorrect IN (0,1)),
                                     FOREIGN KEY (FlashcardId) REFERENCES Flashcards(Id) ON DELETE CASCADE)";
 
+                string createFlashcardStatsTable = @"CREATE TABLE IF NOT EXISTS FlashcardStats (
+                                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                    FlashcardId INTEGER NOT NULL,
+                                    IsCorrect INTEGER NOT NULL CHECK (IsCorrect IN (0,1)),
+                                    AnswerDate TEXT NOT NULL,
+                                    FOREIGN KEY (FlashcardId) REFERENCES Flashcards(Id) ON DELETE CASCADE)";
+
                 using var cmd1 = new SqliteCommand(createCategoriesTable, db);
                 cmd1.ExecuteNonQuery();
                 using var cmd2 = new SqliteCommand(createFlashcardsTable, db);
                 cmd2.ExecuteNonQuery();
                 using var cmd3 = new SqliteCommand(createFlashcardAnswersTable, db);
                 cmd3.ExecuteNonQuery();
+                using var cmd4 = new SqliteCommand(createFlashcardStatsTable, db);
+                cmd4.ExecuteNonQuery();
 
                 ExceptionHelper.LogError($"[SUCCESS] Datenbank erfolgreich initialisiert: {_dbPath}");
             }

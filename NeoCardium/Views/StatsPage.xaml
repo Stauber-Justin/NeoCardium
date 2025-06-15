@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="NeoCardium.Views.StatsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:charting="using:CommunityToolkit.WinUI.UI.Controls"
+    mc:Ignorable="d"
+    xmlns:vm="using:NeoCardium.ViewModels"
+    x:DataType="vm:StatsPageViewModel">
+
+    <StackPanel Padding="20" Spacing="20">
+        <TextBlock Text="Learning History" FontSize="24" FontWeight="Bold"/>
+        <charting:Chart x:Name="HistoryChart" Height="300" ItemsSource="{x:Bind DailyStats}">
+            <charting:LineSeries ItemsSource="{x:Bind DailyStats}" IndependentValuePath="Date" DependentValuePath="Correct" Title="Correct"/>
+            <charting:LineSeries ItemsSource="{x:Bind DailyStats}" IndependentValuePath="Date" DependentValuePath="Incorrect" Title="Incorrect"/>
+        </charting:Chart>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+            <Button Content="Reset" Command="{x:Bind ViewModel.ResetStatsCommand}"/>
+            <Button Content="Export" Command="{x:Bind ViewModel.ExportStatsCommand}"/>
+        </StackPanel>
+    </StackPanel>
+</Page>

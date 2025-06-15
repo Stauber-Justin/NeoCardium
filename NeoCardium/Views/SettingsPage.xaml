@@ -20,6 +20,7 @@
                 <ComboBoxItem Content="System" Tag="Default"/>
                 <ComboBoxItem Content="Hell" Tag="Light"/>
                 <ComboBoxItem Content="Dunkel" Tag="Dark"/>
+                <ComboBoxItem Content="Pastell" Tag="Pastel"/>
             </ComboBox>
         </StackPanel>
 

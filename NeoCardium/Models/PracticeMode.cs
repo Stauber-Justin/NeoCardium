@@ -9,7 +9,10 @@ namespace NeoCardium.Models
     public enum PracticeMode
     {
         MultipleChoice,
-        Flashcard
+        Flashcard,
+        TypedAnswer,
+        Timed,
+        TrueFalse
     }
     public class PracticeModeOption
     {
