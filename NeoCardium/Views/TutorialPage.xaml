@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="NeoCardium.Views.TutorialPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Grid>
+        <TeachingTip x:Name="TipCreate" Title="{x:Uid TutorialPage_Step1.Title}" Subtitle="{x:Uid TutorialPage_Step1.Subtitle}" IsOpen="False" Closed="TipCreate_Closed" />
+        <TeachingTip x:Name="TipPractice" Title="{x:Uid TutorialPage_Step2.Title}" Subtitle="{x:Uid TutorialPage_Step2.Subtitle}" IsOpen="False" Closed="TipPractice_Closed" />
+        <Button x:Name="FinishButton" Content="{x:Uid TutorialPage_FinishButton}" Visibility="Collapsed" Click="FinishButton_Click" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,40"/>
+    </Grid>
+</Page>

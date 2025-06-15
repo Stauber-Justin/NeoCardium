@@ -41,6 +41,9 @@ namespace NeoCardium
                     case "PracticePage":
                         ContentFrame.Navigate(typeof(PracticePage));
                         break;
+                    case "StatsPage":
+                        ContentFrame.Navigate(typeof(StatsPage));
+                        break;
                     case "SettingsPage":
                         ContentFrame.Navigate(typeof(SettingsPage));
                         break;
@@ -76,6 +79,16 @@ namespace NeoCardium
                 micaController?.Dispose();
                 micaController = null;
             };
+        }
+
+        public void NavigateToTutorial()
+        {
+            ContentFrame.Navigate(typeof(TutorialPage));
+        }
+
+        public void NavigateToCategory()
+        {
+            ContentFrame.Navigate(typeof(CategoryPage));
         }
     }
 }

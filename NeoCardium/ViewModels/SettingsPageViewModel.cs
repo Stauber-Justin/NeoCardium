@@ -25,10 +25,7 @@ namespace NeoCardium.ViewModels
                 if (SetProperty(ref _selectedTheme, value))
                 {
                     localSettings.Values[ThemeKey] = value;
-                    if (Enum.TryParse<ElementTheme>(value, out var theme) && App._mainWindow?.Content is FrameworkElement root)
-                    {
-                        root.RequestedTheme = theme;
-                    }
+                    App.ApplyTheme(value);
                 }
             }
         }
@@ -123,6 +120,7 @@ namespace NeoCardium.ViewModels
             {
                 _reminderTime = span;
             }
+            App.ApplyTheme(_selectedTheme);
         }
     }
 }

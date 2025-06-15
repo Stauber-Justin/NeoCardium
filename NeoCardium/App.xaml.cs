@@ -12,6 +12,35 @@ namespace NeoCardium
     public partial class App : Application
     {
         public static MainWindow? _mainWindow { get; private set; }
+        private const string FirstLaunchKey = "FirstLaunchShown";
+        
+        private static readonly ResourceDictionary _pastelDictionary = new()
+        {
+            Source = new Uri("ms-appx:///Themes/Pastel.xaml")
+        };
+
+        public static void ApplyTheme(string theme)
+        {
+            if (_mainWindow?.Content is FrameworkElement root)
+            {
+                if (theme == "Pastel")
+                {
+                    root.RequestedTheme = ElementTheme.Light;
+                    if (!Current.Resources.MergedDictionaries.Contains(_pastelDictionary))
+                    {
+                        Current.Resources.MergedDictionaries.Add(_pastelDictionary);
+                    }
+                }
+                else
+                {
+                    if (Enum.TryParse<ElementTheme>(theme, out var etheme))
+                    {
+                        root.RequestedTheme = etheme;
+                    }
+                    Current.Resources.MergedDictionaries.Remove(_pastelDictionary);
+                }
+            }
+        }
 
         public App()
         {
@@ -46,6 +75,19 @@ namespace NeoCardium
             }
 
             var settings = ApplicationData.Current.LocalSettings;
+            bool isFirstLaunch = false;
+            
+            if (!settings.Values.ContainsKey(FirstLaunchKey))
+            {
+                isFirstLaunch = true;
+                settings.Values[FirstLaunchKey] = true;
+            }
+
+            if (isFirstLaunch)
+            {
+                _mainWindow.NavigateToTutorial();
+            }
+            
             if (settings.Values.TryGetValue("ReminderEnabled", out var enabledObj) && enabledObj is bool enabled && enabled)
             {
                 TimeSpan time = new(9, 0, 0);
