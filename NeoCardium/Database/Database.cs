@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Diagnostics;
+using Windows.Storage;
 using NeoCardium.Helpers;
 
 namespace NeoCardium.Database
@@ -12,22 +13,13 @@ namespace NeoCardium.Database
     public class Database
     {
         // Pfad zur Datenbank im lokalen Anwendungsdatenverzeichnis
-        private static readonly string _appFolder = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName)
-            ?? throw new InvalidOperationException("Konnte den Speicherort des Programms nicht bestimmen.");
+        private static readonly string _appFolder = GetAppFolderPath();
 
-        private static readonly string _dataFolder;
-        private static readonly string _dbPath;
-
-        static Database()
-        {
-            _dataFolder = Path.Combine(_appFolder, "Data");
-            _dbPath = Path.Combine(_dataFolder, "NeoCardium.db");
-        }
+        private static readonly string _dataFolder = Path.Combine(_appFolder, "Data");
+        private static readonly string _dbPath = Path.Combine(_dataFolder, "NeoCardium.db");
 
         public Database()
         {
-            string appFolder = AppContext.BaseDirectory
-                    ?? throw new InvalidOperationException("Konnte den Speicherort des Programms nicht bestimmen.");
             if (!Directory.Exists(_dataFolder))
             {
                 Directory.CreateDirectory(_dataFolder);
@@ -107,6 +99,19 @@ namespace NeoCardium.Database
             {
                 ExceptionHelper.LogError("Fehler beim Erstellen des Datenbankverzeichnisses.", ex);
                 throw new InvalidOperationException("Fehler beim Erstellen des Datenbankverzeichnisses.", ex);
+            }
+        }
+
+        private static string GetAppFolderPath()
+        {
+            try
+            {
+                return ApplicationData.Current.LocalFolder.Path;
+            }
+            catch
+            {
+                return Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName)
+                    ?? throw new InvalidOperationException("Konnte den Speicherort des Programms nicht bestimmen.");
             }
         }
     }
