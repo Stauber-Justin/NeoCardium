@@ -18,11 +18,40 @@ namespace NeoCardium.Views
         public SettingsPage()
         {
             this.InitializeComponent();
+            Loaded += SettingsPage_Loaded;
+        }
+
+        private void SettingsPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            var lang = Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride;
+            if (string.IsNullOrEmpty(lang))
+            {
+                lang = Windows.System.UserProfile.GlobalizationPreferences.Languages.FirstOrDefault() ?? "en-US";
+            }
+
+            foreach (ComboBoxItem item in LanguageComboBox.Items)
+            {
+                if ((string?)item.Tag == lang)
+                {
+                    LanguageComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+            
             DataContext = ViewModel;
 
             if (Enum.TryParse<ElementTheme>(ViewModel.SelectedTheme, out var theme) && App._mainWindow?.Content is FrameworkElement root)
             {
                 root.RequestedTheme = theme;
+            }
+        }
+
+        private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (LanguageComboBox.SelectedItem is ComboBoxItem item && item.Tag is string lang)
+            {
+                Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = lang;
+                Windows.ApplicationModel.Resources.Core.ResourceContext.GetForCurrentView().Reset();
             }
         }
     }

@@ -5,22 +5,20 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    
+
     xmlns:local="using:NeoCardium.Views"
 
     x:Class="NeoCardium.Views.CategoryDialog"
+    x:Uid="CategoryDialog"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
-    Title="Neue Kategorie erstellen"
-    PrimaryButtonText="Speichern"
-    SecondaryButtonText="Abbrechen"
     DefaultButton="Primary"
     PrimaryButtonClick="ContentDialog_OnPrimaryButtonClick"
     CloseButtonClick="ContentDialog_OnCloseButtonClick">
 
     <StackPanel>
-        <TextBlock Text="Gib den Namen der neuen Kategorie ein:" Margin="0,0,0,10"/>
-        <TextBox x:Name="CategoryNameTextBox" PlaceholderText="Kategoriename eingeben..." />
-        <TextBlock x:Name="ErrorMessageTextBlock" Text="Bitte einen gültigen Namen eingeben!" 
+        <TextBlock x:Uid="CategoryDialog_NameHint" Margin="0,0,0,10"/>
+        <TextBox x:Name="CategoryNameTextBox" x:Uid="CategoryDialog_NameBox" />
+        <TextBlock x:Name="ErrorMessageTextBlock" x:Uid="CategoryDialog_ErrorMessage"
                    Foreground="Red" Visibility="Collapsed" Margin="0,5,0,0"/>
     </StackPanel>
 </ContentDialog>

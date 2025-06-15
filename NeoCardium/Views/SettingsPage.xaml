@@ -28,6 +28,15 @@
             <TextBlock Text="Allgemein" FontWeight="SemiBold" Margin="0,10,0,5"/>
             <CheckBox Content="Statistik anzeigen" IsChecked="{x:Bind ViewModel.ShowStatistics, Mode=TwoWay}"/>
         </StackPanel>
+      
+      <!-- Language settings -->
+      <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                <TextBlock x:Uid="SettingsPage_LanguageLabel" VerticalAlignment="Center"/>
+                <ComboBox x:Name="LanguageComboBox" Width="150" SelectionChanged="LanguageComboBox_SelectionChanged">
+                    <ComboBoxItem x:Uid="SettingsPage_LanguageComboBox.Deutsch" Tag="de-DE"/>
+                    <ComboBoxItem x:Uid="SettingsPage_LanguageComboBox.English" Tag="en-US"/>
+                </ComboBox>
+            </StackPanel>
 
         <!-- Premium / Account section -->
         <StackPanel>

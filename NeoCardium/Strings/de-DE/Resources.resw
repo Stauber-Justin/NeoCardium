@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="NavItem_Home.Content" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="NavItem_Practice.Content" xml:space="preserve">
+    <value>Lernmodus</value>
+  </data>
+  <data name="NavItem_Settings.Content" xml:space="preserve">
+    <value>Einstellungen</value>
+  </data>
+  <data name="SettingsPage_Title.Text" xml:space="preserve">
+    <value>Einstellungen: Hier kannst du dein Design anpassen!</value>
+  </data>
+  <data name="SettingsPage_LanguageLabel.Text" xml:space="preserve">
+    <value>Sprache</value>
+  </data>
+  <data name="SettingsPage_LanguageComboBox.Deutsch" xml:space="preserve">
+    <value>Deutsch</value>
+  </data>
+  <data name="SettingsPage_LanguageComboBox.English" xml:space="preserve">
+    <value>Englisch</value>
+  </data>
+  <data name="CategoryPage_Header.Text" xml:space="preserve">
+    <value>Deine Kategorien</value>
+  </data>
+  <data name="CategoryPage_NewButton.Content" xml:space="preserve">
+    <value>Neue Kategorie erstellen</value>
+  </data>
+  <data name="CategoryPage_ImportButton.Content" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="CategoryDialog.Title" xml:space="preserve">
+    <value>Neue Kategorie erstellen</value>
+  </data>
+  <data name="CategoryDialog.PrimaryButtonText" xml:space="preserve">
+    <value>Speichern</value>
+  </data>
+  <data name="CategoryDialog.SecondaryButtonText" xml:space="preserve">
+    <value>Abbrechen</value>
+  </data>
+  <data name="CategoryDialog_NameHint.Text" xml:space="preserve">
+    <value>Gib den Namen der neuen Kategorie ein:</value>
+  </data>
+  <data name="CategoryDialog_NameBox.PlaceholderText" xml:space="preserve">
+    <value>Kategoriename eingeben...</value>
+  </data>
+  <data name="CategoryDialog_ErrorMessage.Text" xml:space="preserve">
+    <value>Bitte einen gültigen Namen eingeben!</value>
+  </data>
+  <data name="CategoryDialog_ErrorEmpty.Text" xml:space="preserve">
+    <value>Kategorie darf nicht leer sein.</value>
+  </data>
+  <data name="CategoryDialog_ErrorExists.Text" xml:space="preserve">
+    <value>Diese Kategorie existiert bereits.</value>
+  </data>
+  <data name="CategoryDialog_SaveError.Text" xml:space="preserve">
+    <value>Unerwarteter Fehler beim Speichern.</value>
+  </data>
+</root>
