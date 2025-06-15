@@ -11,6 +11,10 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using System.Threading.Tasks;
 using System.Runtime.Versioning;
 using NeoCardium.Database;
+using Windows.Storage.Pickers;
+using Windows.Storage;
+using WinRT.Interop;
+using System.Text;
 
 namespace NeoCardium.Helpers
 {
@@ -204,13 +208,18 @@ namespace NeoCardium.Helpers
                 // Erstelle das Kontextmenü für Mehrfachauswahl.
                 MenuFlyout flyout = new MenuFlyout();
 
-                MenuFlyoutItem extractItem = new MenuFlyoutItem { Text = "Extract (Placeholder)" };
-                extractItem.Click += (s, args) =>
+                MenuFlyoutItem extractItem = new MenuFlyoutItem { Text = "Export Selected" };
+                extractItem.Click += async (s, args) =>
                 {
                     var command = GetExtractCommand(listView);
                     if (command != null && command.CanExecute(listView.SelectedItems))
                     {
                         command.Execute(listView.SelectedItems);
+                    }
+                    else
+                    {
+                        var categories = listView.SelectedItems.Cast<Category>().ToList();
+                        await ExportCategoriesAsync(categories, listView.XamlRoot);
                     }
                 };
                 flyout.Items.Add(extractItem);
@@ -257,6 +266,54 @@ namespace NeoCardium.Helpers
                 e.Handled = true;
             }
             await Task.CompletedTask;
+        }
+
+        private static async Task ExportCategoriesAsync(List<Category> categories, XamlRoot xamlRoot)
+        {
+            if (categories == null || categories.Count == 0)
+                return;
+
+            try
+            {
+                StringBuilder exportBuilder = new StringBuilder();
+                foreach (var category in categories)
+                {
+                    var flashcards = DatabaseHelper.Instance.GetFlashcardsByCategory(category.Id);
+                    foreach (var flashcard in flashcards)
+                    {
+                        exportBuilder.Append($"{category.CategoryName}@next@{flashcard.Question}");
+                        var answers = DatabaseHelper.Instance.GetAnswersByFlashcard(flashcard.Id);
+                        foreach (var answer in answers)
+                        {
+                            string answerField = answer.IsCorrect ? $"@correct@{answer.AnswerText}" : answer.AnswerText;
+                            exportBuilder.Append($"@next@{answerField}");
+                        }
+                        exportBuilder.Append("@end@");
+                        exportBuilder.AppendLine();
+                    }
+                }
+
+                string exportContent = exportBuilder.ToString();
+
+                FileSavePicker savePicker = new FileSavePicker
+                {
+                    SuggestedStartLocation = PickerLocationId.DocumentsLibrary
+                };
+                savePicker.FileTypeChoices.Add("Custom CSV file", new List<string> { ".csv" });
+                savePicker.SuggestedFileName = "export.csv";
+                var handle = WindowNative.GetWindowHandle(App._mainWindow);
+                InitializeWithWindow.Initialize(savePicker, handle);
+
+                StorageFile file = await savePicker.PickSaveFileAsync();
+                if (file != null)
+                {
+                    await FileIO.WriteTextAsync(file, exportContent);
+                }
+            }
+            catch (Exception ex)
+            {
+                await ExceptionHelper.ShowErrorDialogAsync("Fehler beim Exportieren der ausgewählten Kategorien.", ex, xamlRoot);
+            }
         }
 
         #endregion
