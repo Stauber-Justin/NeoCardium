@@ -7,10 +7,12 @@ using Microsoft.UI.Xaml.Controls;
 using NeoCardium.Database;
 using NeoCardium.Helpers;
 
+using Windows.ApplicationModel.Resources;
 namespace NeoCardium.Views
 {
     public sealed partial class CategoryDialog : ContentDialog
     {
+        private readonly ResourceLoader _loader = new("Resources");
         public string EnteredCategoryName
         {
             get => CategoryNameTextBox.Text;
@@ -28,15 +30,15 @@ namespace NeoCardium.Views
             {
                 if (string.IsNullOrWhiteSpace(CategoryNameTextBox.Text))
                 {
-                    ErrorMessageTextBlock.Text = "Kategorie darf nicht leer sein.";
+                    ErrorMessageTextBlock.Text = _loader.GetString("CategoryDialog_ErrorEmpty.Text");
                     ErrorMessageTextBlock.Visibility = Visibility.Visible;
                     args.Cancel = true; // Dialog bleibt offen
                     return;
                 }
 
-                // Prüfen, ob Kategorie bereits existiert
-                if (DatabaseHelper.Instance.CategoryExists(CategoryNameTextBox.Text))
-                {
+                    ErrorMessageTextBlock.Text = _loader.GetString("CategoryDialog_ErrorExists.Text");
+                    ErrorMessageTextBlock.Text = _loader.GetString("CategoryDialog_ErrorEmpty.Text");
+                await ExceptionHelper.ShowErrorDialogAsync(_loader.GetString("CategoryDialog_SaveError.Text"), ex, this.XamlRoot);
                     ErrorMessageTextBlock.Text = "Diese Kategorie existiert bereits.";
                     ErrorMessageTextBlock.Visibility = Visibility.Visible;
                     args.Cancel = true;
@@ -60,7 +62,7 @@ namespace NeoCardium.Views
 
         private void ContentDialog_OnCloseButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
-            this.Hide(); // Schließt den Dialog
+            this.Hide(); // SchlieÃŸt den Dialog
         }
     }
 }

@@ -12,10 +12,19 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
-        <TextBlock Text="Einstellungen: Hier kannst du dein Design anpassen!" 
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontSize="24"
-                   FontWeight="Bold"/>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="20">
+            <TextBlock x:Uid="SettingsPage_Title"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       TextAlignment="Center"/>
+
+            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                <TextBlock x:Uid="SettingsPage_LanguageLabel" VerticalAlignment="Center"/>
+                <ComboBox x:Name="LanguageComboBox" Width="150" SelectionChanged="LanguageComboBox_SelectionChanged">
+                    <ComboBoxItem x:Uid="SettingsPage_LanguageComboBox.Deutsch" Tag="de-DE"/>
+                    <ComboBoxItem x:Uid="SettingsPage_LanguageComboBox.English" Tag="en-US"/>
+                </ComboBox>
+            </StackPanel>
+        </StackPanel>
     </Grid>
 </Page>

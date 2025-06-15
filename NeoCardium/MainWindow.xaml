@@ -12,19 +12,19 @@
 
     <NavigationView x:Name="NavView" SelectionChanged="NavView_SelectionChanged">
         <NavigationView.MenuItems>
-            <NavigationViewItem Content="Start" Tag="CategoryPage">
+            <NavigationViewItem x:Uid="NavItem_Home" Tag="CategoryPage">
                 <NavigationViewItem.Icon>
                     <SymbolIcon Symbol="Home"/>
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
 
-            <NavigationViewItem Content="Lernmodus" Tag="PracticePage">
+            <NavigationViewItem x:Uid="NavItem_Practice" Tag="PracticePage">
                 <NavigationViewItem.Icon>
                     <SymbolIcon Symbol="Library"/>
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
 
-            <NavigationViewItem Content="Einstellungen" Tag="SettingsPage">
+            <NavigationViewItem x:Uid="NavItem_Settings" Tag="SettingsPage">
                 <NavigationViewItem.Icon>
                     <SymbolIcon Symbol="Setting"/>
                 </NavigationViewItem.Icon>
