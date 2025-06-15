@@ -40,10 +40,7 @@ namespace NeoCardium.Views
             
             DataContext = ViewModel;
 
-            if (Enum.TryParse<ElementTheme>(ViewModel.SelectedTheme, out var theme) && App._mainWindow?.Content is FrameworkElement root)
-            {
-                root.RequestedTheme = theme;
-            }
+            App.ApplyTheme(ViewModel.SelectedTheme);
         }
 
         private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

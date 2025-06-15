@@ -58,7 +58,7 @@
             </Grid.RowDefinitions>
 
             <!-- Frage-Anzeige -->
-            <Border Padding="20" Background="#1E1E1E" CornerRadius="10" Margin="0,0,0,40" Width="600">
+            <Border Padding="20" Background="{StaticResource CardBackgroundBrush}" CornerRadius="10" Margin="0,0,0,40" Width="600">
                 <TextBlock Text="{Binding CurrentQuestion.Question}"
                            FontSize="24" FontWeight="Bold" Foreground="White" TextWrapping="Wrap"
                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -89,9 +89,9 @@
                                             Padding="20,10"
                                             Margin="10, 15, 0, 0"
                                             FontSize="18"
-                                            Background="#292929"
+                                            Background="{StaticResource OptionBackgroundBrush}"
                                             Foreground="White"
-                                            BorderBrush="LightBlue"
+                                            BorderBrush="{StaticResource AccentBrush}"
                                             BorderThickness="2"
                                             CornerRadius="15"
                                             HorizontalAlignment="Stretch"
@@ -115,7 +115,7 @@
                         Margin="20"
                         IsEnabled="{Binding IsNotProcessing}"/>
                 <!-- Antwort-Anzeige -->
-                <Border Background="#1E1E1E" CornerRadius="10" Padding="20" Margin="20,10,20,0"
+                <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="10" Padding="20" Margin="20,10,20,0"
                         Visibility="{Binding IsAnswerRevealed, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <TextBlock Text="{Binding CurrentQuestion.Answer}"
                                FontSize="22" FontWeight="Bold" Foreground="White" 
@@ -142,24 +142,24 @@
                 Visibility="{Binding IsFinalStatisticsVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                BorderThickness="1" BorderBrush="#606060">
+                BorderThickness="1" BorderBrush="{StaticResource StatsBorderBrush}">
             <StackPanel HorizontalAlignment="Center" Spacing="15">
                 <TextBlock Text="📝 Deine Lernstatistik" 
                            FontSize="20" FontWeight="Bold" Foreground="White" 
                            HorizontalAlignment="Center"/>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <TextBlock Text="✅ Richtige Antworten:" Foreground="LightGreen" FontSize="18"/>
-                    <TextBlock Text="{Binding TotalCorrect}" Foreground="LightGreen" FontSize="18" FontWeight="Bold" Margin="5,0,0,0"/>
+                    <TextBlock Text="✅ Richtige Antworten:" Foreground="{StaticResource CorrectBrush}" FontSize="18"/>
+                    <TextBlock Text="{Binding TotalCorrect}" Foreground="{StaticResource CorrectBrush}" FontSize="18" FontWeight="Bold" Margin="5,0,0,0"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <TextBlock Text="❌ Falsche Antworten:" Foreground="OrangeRed" FontSize="18"/>
-                    <TextBlock Text="{Binding TotalIncorrect}" Foreground="OrangeRed" FontSize="18" FontWeight="Bold" Margin="5,0,0,0"/>
+                    <TextBlock Text="❌ Falsche Antworten:" Foreground="{StaticResource IncorrectBrush}" FontSize="18"/>
+                    <TextBlock Text="{Binding TotalIncorrect}" Foreground="{StaticResource IncorrectBrush}" FontSize="18" FontWeight="Bold" Margin="5,0,0,0"/>
                 </StackPanel>
                 <ProgressBar Minimum="0"
                              Maximum="{Binding TotalAnswered}"
                              Value="{Binding TotalCorrect}"
                              Width="250"
-                             Foreground="LightBlue"
+                             Foreground="{StaticResource AccentBrush}"
                              CornerRadius="5"
                              HorizontalAlignment="Center"/>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
@@ -168,7 +168,7 @@
                             Style="{StaticResource AccentButtonStyle}"/>
                     <Button Content="🛑 Beenden"
                             Command="{Binding CloseSessionCommand}"
-                            Background="HotPink" Foreground="White"
+                            Background="{StaticResource DangerBrush}" Foreground="White"
                             CornerRadius="8"/>
                 </StackPanel>
             </StackPanel>

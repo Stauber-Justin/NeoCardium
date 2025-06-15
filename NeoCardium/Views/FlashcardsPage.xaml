@@ -73,11 +73,11 @@
                 <DataTemplate x:DataType="models:Flashcard">
                     <StackPanel Orientation="Horizontal" Padding="10">
                         <TextBlock>
-                    <Run Text="{x:Bind CorrectCount}" Foreground="Green"/>
-                    <Run Text="✅ " Foreground="Gray"/>
+                    <Run Text="{x:Bind CorrectCount}" Foreground="{StaticResource CorrectBrush}"/>
+                    <Run Text="✅ " Foreground="{StaticResource SecondaryBrush}"/>
 
-                    <Run Text="{x:Bind IncorrectCount}" Foreground="Red"/>
-                    <Run Text="❌ | " Foreground="Gray"/>
+                    <Run Text="{x:Bind IncorrectCount}" Foreground="{StaticResource IncorrectBrush}"/>
+                    <Run Text="❌ | " Foreground="{StaticResource SecondaryBrush}"/>
 
                     <Run Text="{x:Bind Question}" FontWeight="Bold"/>
                         </TextBlock>
