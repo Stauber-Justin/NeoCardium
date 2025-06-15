@@ -10,6 +10,33 @@ namespace NeoCardium
     public partial class App : Application
     {
         public static MainWindow? _mainWindow { get; private set; }
+        private static readonly ResourceDictionary _pastelDictionary = new()
+        {
+            Source = new Uri("ms-appx:///Themes/Pastel.xaml")
+        };
+
+        public static void ApplyTheme(string theme)
+        {
+            if (_mainWindow?.Content is FrameworkElement root)
+            {
+                if (theme == "Pastel")
+                {
+                    root.RequestedTheme = ElementTheme.Light;
+                    if (!Current.Resources.MergedDictionaries.Contains(_pastelDictionary))
+                    {
+                        Current.Resources.MergedDictionaries.Add(_pastelDictionary);
+                    }
+                }
+                else
+                {
+                    if (Enum.TryParse<ElementTheme>(theme, out var etheme))
+                    {
+                        root.RequestedTheme = etheme;
+                    }
+                    Current.Resources.MergedDictionaries.Remove(_pastelDictionary);
+                }
+            }
+        }
 
         public App()
         {

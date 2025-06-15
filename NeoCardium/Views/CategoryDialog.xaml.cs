@@ -28,34 +28,30 @@ namespace NeoCardium.Views
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(CategoryNameTextBox.Text))
+                ErrorMessageTextBlock.Visibility = Visibility.Collapsed;
+
+                string name = CategoryNameTextBox.Text?.Trim();
+                if (string.IsNullOrWhiteSpace(name))
                 {
                     ErrorMessageTextBlock.Text = _loader.GetString("CategoryDialog_ErrorEmpty.Text");
-                    ErrorMessageTextBlock.Visibility = Visibility.Visible;
-                    args.Cancel = true; // Dialog bleibt offen
-                    return;
-                }
-
-                    ErrorMessageTextBlock.Text = _loader.GetString("CategoryDialog_ErrorExists.Text");
-                    ErrorMessageTextBlock.Text = _loader.GetString("CategoryDialog_ErrorEmpty.Text");
-                await ExceptionHelper.ShowErrorDialogAsync(_loader.GetString("CategoryDialog_SaveError.Text"), ex, this.XamlRoot);
-                    ErrorMessageTextBlock.Text = "Diese Kategorie existiert bereits.";
                     ErrorMessageTextBlock.Visibility = Visibility.Visible;
                     args.Cancel = true;
                     return;
                 }
 
-                if (string.IsNullOrWhiteSpace(CategoryNameTextBox.Text))
+                if (DatabaseHelper.Instance.CategoryExists(name))
                 {
-                    ErrorMessageTextBlock.Text = "Kategorie darf nicht leer sein.";
+                    ErrorMessageTextBlock.Text = _loader.GetString("CategoryDialog_ErrorExists.Text");
                     ErrorMessageTextBlock.Visibility = Visibility.Visible;
-                    args.Cancel = true; // Dialog bleibt offen
+                    args.Cancel = true;
                     return;
                 }
+
+                EnteredCategoryName = name;
             }
             catch (Exception ex)
             {
-                await ExceptionHelper.ShowErrorDialogAsync("Unerwarteter Fehler beim Speichern.", ex, this.XamlRoot);
+                await ExceptionHelper.ShowErrorDialogAsync(_loader.GetString("CategoryDialog_SaveError.Text"), ex, this.XamlRoot);
                 args.Cancel = true;
             }
         }

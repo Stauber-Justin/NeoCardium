@@ -65,7 +65,7 @@
             </Grid.RowDefinitions>
 
             <!-- Frage-Anzeige -->
-            <Border Padding="20" Background="#1E1E1E" CornerRadius="10" Margin="0,0,0,40" Width="600">
+            <Border Padding="20" Background="{StaticResource CardBackgroundBrush}" CornerRadius="10" Margin="0,0,0,40" Width="600">
                 <TextBlock Text="{Binding CurrentQuestion.Question}"
                            FontSize="24" FontWeight="Bold" Foreground="White" TextWrapping="Wrap"
                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -88,6 +88,36 @@
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
 
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Content="{Binding AnswerText}"
+                                            Command="{Binding DataContext.CheckAnswerAsync, ElementName=PracticePageView}"
+                                            CommandParameter="{Binding}"
+                                            Padding="20,10"
+                                            Margin="10, 15, 0, 0"
+                                            FontSize="18"
+                                            Background="{StaticResource OptionBackgroundBrush}"
+                                            Foreground="White"
+                                            BorderBrush="{StaticResource AccentBrush}"
+                                            BorderThickness="2"
+                                            CornerRadius="15"
+                                            HorizontalAlignment="Stretch"
+                                            MinWidth="250"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <!-- Timed-Modus (Multiple Choice mit Timer) -->
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top" Padding="20"
+                            Visibility="{Binding SelectedMode, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Timed}">
+                    <TextBlock Text="{Binding TimeLeft}" FontSize="20" Foreground="LightBlue" HorizontalAlignment="Center"/>
+                    <ItemsControl ItemsSource="{Binding AnswerOptions}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <VariableSizedWrapGrid MaximumRowsOrColumns="2" Orientation="Horizontal" HorizontalAlignment="Center"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Button Content="{Binding AnswerText}"
@@ -122,12 +152,19 @@
                         Margin="20"
                         IsEnabled="{Binding IsNotProcessing}"/>
                 <!-- Antwort-Anzeige -->
-                <Border Background="#1E1E1E" CornerRadius="10" Padding="20" Margin="20,10,20,0"
+                <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="10" Padding="20" Margin="20,10,20,0"
                         Visibility="{Binding IsAnswerRevealed, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <TextBlock Text="{Binding CurrentQuestion.Answer}"
                                FontSize="22" FontWeight="Bold" Foreground="White" 
                                TextWrapping="Wrap" HorizontalAlignment="Center"/>
                 </Border>
+            </StackPanel>
+
+            <!-- TypedAnswer-Modus -->
+            <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Top" Spacing="10"
+                        Visibility="{Binding SelectedMode, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=TypedAnswer}">
+                <TextBox Text="{Binding TypedUserAnswer, Mode=TwoWay}" Width="300" PlaceholderText="Antwort eingeben"/>
+                <Button Content="Prüfen" Command="{Binding CheckTypedAnswerAsync}" Width="150" IsEnabled="{Binding IsNotProcessing}"/>
             </StackPanel>
         </Grid>
 
@@ -149,24 +186,24 @@
                 Visibility="{Binding IsFinalStatisticsVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                BorderThickness="1" BorderBrush="#606060">
+                BorderThickness="1" BorderBrush="{StaticResource StatsBorderBrush}">
             <StackPanel HorizontalAlignment="Center" Spacing="15">
                 <TextBlock Text="📝 Deine Lernstatistik" 
                            FontSize="20" FontWeight="Bold" Foreground="White" 
                            HorizontalAlignment="Center"/>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <TextBlock Text="✅ Richtige Antworten:" Foreground="LightGreen" FontSize="18"/>
-                    <TextBlock Text="{Binding TotalCorrect}" Foreground="LightGreen" FontSize="18" FontWeight="Bold" Margin="5,0,0,0"/>
+                    <TextBlock Text="✅ Richtige Antworten:" Foreground="{StaticResource CorrectBrush}" FontSize="18"/>
+                    <TextBlock Text="{Binding TotalCorrect}" Foreground="{StaticResource CorrectBrush}" FontSize="18" FontWeight="Bold" Margin="5,0,0,0"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <TextBlock Text="❌ Falsche Antworten:" Foreground="OrangeRed" FontSize="18"/>
-                    <TextBlock Text="{Binding TotalIncorrect}" Foreground="OrangeRed" FontSize="18" FontWeight="Bold" Margin="5,0,0,0"/>
+                    <TextBlock Text="❌ Falsche Antworten:" Foreground="{StaticResource IncorrectBrush}" FontSize="18"/>
+                    <TextBlock Text="{Binding TotalIncorrect}" Foreground="{StaticResource IncorrectBrush}" FontSize="18" FontWeight="Bold" Margin="5,0,0,0"/>
                 </StackPanel>
                 <ProgressBar Minimum="0"
                              Maximum="{Binding TotalAnswered}"
                              Value="{Binding TotalCorrect}"
                              Width="250"
-                             Foreground="LightBlue"
+                             Foreground="{StaticResource AccentBrush}"
                              CornerRadius="5"
                              HorizontalAlignment="Center"/>
                 <TextBlock Text="{Binding AchievementMessage}"
@@ -179,7 +216,7 @@
                             Style="{StaticResource AccentButtonStyle}"/>
                     <Button Content="🛑 Beenden"
                             Command="{Binding CloseSessionCommand}"
-                            Background="HotPink" Foreground="White"
+                            Background="{StaticResource DangerBrush}" Foreground="White"
                             CornerRadius="8"/>
                 </StackPanel>
             </StackPanel>

@@ -13,6 +13,7 @@ using Microsoft.UI.Xaml; // For XamlRoot access if needed
 using System.Windows.Input;
 using Microsoft.UI.Xaml.Controls;
 using NeoCardium.Views;
+using Microsoft.UI.Dispatching;
 
 namespace NeoCardium.ViewModels
 {
@@ -66,6 +67,11 @@ namespace NeoCardium.ViewModels
         private bool _isRetryModeEnabled;
         private bool _isFinalStatisticsVisible;
 
+        // Additional fields for new practice modes
+        private string _typedUserAnswer = string.Empty;
+        private int _timeLeft;
+        private DispatcherTimer? _timer;
+
         // Flag to prevent multiple rapid answer processing.
         private bool _isProcessingAnswer;
         public bool IsProcessingAnswer
@@ -81,6 +87,7 @@ namespace NeoCardium.ViewModels
 
         // Commands.
         public ICommand CheckAnswerAsync { get; }
+        public ICommand CheckTypedAnswerAsync { get; }
 
         public PracticePageViewModel()
         {
@@ -124,6 +131,8 @@ namespace NeoCardium.ViewModels
                 }
 
                 Debug.WriteLine($"[CheckAnswerAsync] Antwort geklickt: {selectedAnswer.AnswerText}");
+                if (SelectedMode == PracticeMode.Timed)
+                    StopTimer();
                 if (selectedAnswer.IsCorrect)
                 {
                     if (!_isRetryModeEnabled)
@@ -153,6 +162,49 @@ namespace NeoCardium.ViewModels
                     await Task.Delay(2000);
                 }
 
+                IsFeedbackVisible = false;
+                await LoadNextQuestionAsync();
+                IsProcessingAnswer = false;
+            });
+
+            // Command for TypedAnswer mode
+            CheckTypedAnswerAsync = new RelayCommand(async (_) =>
+            {
+                if (IsProcessingAnswer) return;
+                IsProcessingAnswer = true;
+
+                if (SelectedMode == PracticeMode.Timed)
+                    StopTimer();
+
+                string user = TypedUserAnswer?.Trim() ?? string.Empty;
+                string correct = CurrentQuestion.Answer.Trim();
+                bool correctFlag = string.Equals(user, correct, StringComparison.OrdinalIgnoreCase);
+
+                if (correctFlag)
+                {
+                    if (!_isRetryModeEnabled)
+                        _totalCorrect++;
+                    if (_incorrectQuestions.Contains(CurrentQuestion))
+                        _incorrectQuestions.Remove(CurrentQuestion);
+                    CurrentQuestion.UpdateCorrectCount();
+                    DatabaseHelper.Instance.UpdateFlashcardStats(CurrentQuestion.Id, true);
+                    FeedbackMessage = "✅ Richtig!";
+                    IsFeedbackVisible = true;
+                    await Task.Delay(750);
+                }
+                else
+                {
+                    _totalIncorrect++;
+                    if (!_incorrectQuestions.Contains(CurrentQuestion))
+                        _incorrectQuestions.Add(CurrentQuestion);
+                    CurrentQuestion.UpdateIncorrectCount();
+                    DatabaseHelper.Instance.UpdateFlashcardStats(CurrentQuestion.Id, false);
+                    FeedbackMessage = $"⚠ Falsch ⚠\nRichtige Antwort: {correct}";
+                    IsFeedbackVisible = true;
+                    await Task.Delay(2000);
+                }
+
+                TypedUserAnswer = string.Empty;
                 IsFeedbackVisible = false;
                 await LoadNextQuestionAsync();
                 IsProcessingAnswer = false;
@@ -205,15 +257,15 @@ namespace NeoCardium.ViewModels
                 Questions = new ObservableCollection<Flashcard>(selectedQuestions);
                 Debug.WriteLine($"[StartPracticeAsync] => Questions.Count={Questions.Count}");
 
-                if (SelectedMode == PracticeMode.MultipleChoice)
-                {
-                    Debug.WriteLine("[StartPracticeAsync] => Mode=MultipleChoice, calling LoadNextQuestionAsync()");
-                    await LoadNextQuestionAsync();
-                }
-                else if (SelectedMode == PracticeMode.Flashcard)
+                if (SelectedMode == PracticeMode.Flashcard)
                 {
                     Debug.WriteLine("[StartPracticeAsync] => Mode=Flashcard, calling LoadFlashcard()");
                     LoadFlashcard();
+                }
+                else
+                {
+                    Debug.WriteLine($"[StartPracticeAsync] => Mode={SelectedMode}, calling LoadNextQuestionAsync()");
+                    await LoadNextQuestionAsync();
                 }
 
                 IsSessionActive = true;
@@ -305,6 +357,7 @@ namespace NeoCardium.ViewModels
                 }
                 else
                 {
+                    StopTimer();
                     ResetPracticeSession();
                     IsSessionActive = false;
                     Debug.WriteLine("[TogglePracticeSessionAsync] => Session stopped");
@@ -333,6 +386,10 @@ namespace NeoCardium.ViewModels
             OnPropertyChanged(nameof(IsFinalStatisticsVisible));
             OnPropertyChanged(nameof(IsSessionActive));
 
+            StopTimer();
+            TypedUserAnswer = string.Empty;
+            TimeLeft = 0;
+
             // Reset selection: always choose the first category, if any.
             if (Categories != null && Categories.Count > 0)
                 SelectedCategory = Categories.First();
@@ -352,6 +409,7 @@ namespace NeoCardium.ViewModels
         public async Task RestartSessionAsync()
         {
             Debug.WriteLine("[RestartSessionAsync] => Hiding stats, restarting session");
+            StopTimer();
             IsFinalStatisticsVisible = false;
             IsSessionActive = true;
             OnPropertyChanged(nameof(IsFinalStatisticsVisible));
@@ -424,7 +482,24 @@ namespace NeoCardium.ViewModels
                 OnPropertyChanged(nameof(CurrentQuestion));
                 OnPropertyChanged(nameof(CurrentQuestion.Question));
                 OnPropertyChanged(nameof(CurrentQuestion.Answer));
-                LoadAnswers();
+
+                if (SelectedMode == PracticeMode.MultipleChoice || SelectedMode == PracticeMode.Timed)
+                {
+                    LoadAnswers();
+                }
+                else if (SelectedMode == PracticeMode.TrueFalse)
+                {
+                    LoadTrueFalseAnswers();
+                }
+                else if (SelectedMode == PracticeMode.TypedAnswer)
+                {
+                    TypedUserAnswer = string.Empty;
+                }
+
+                if (SelectedMode == PracticeMode.Timed)
+                {
+                    StartTimer();
+                }
             }
             catch (Exception ex)
             {
@@ -496,6 +571,47 @@ namespace NeoCardium.ViewModels
             OnPropertyChanged(nameof(AnswerButtonText));
         }
 
+        private void StartTimer()
+        {
+            StopTimer();
+            TimeLeft = 20;
+            _timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
+            _timer.Tick += Timer_Tick;
+            _timer.Start();
+        }
+
+        private void StopTimer()
+        {
+            if (_timer != null)
+            {
+                _timer.Stop();
+                _timer.Tick -= Timer_Tick;
+                _timer = null;
+            }
+        }
+
+        private async void Timer_Tick(object sender, object e)
+        {
+            TimeLeft--;
+            if (TimeLeft <= 0)
+            {
+                StopTimer();
+                _totalIncorrect++;
+                if (!_incorrectQuestions.Contains(CurrentQuestion))
+                    _incorrectQuestions.Add(CurrentQuestion);
+                CurrentQuestion.UpdateIncorrectCount();
+                DatabaseHelper.Instance.UpdateFlashcardStats(CurrentQuestion.Id, false);
+                FeedbackMessage = "⏰ Zeit abgelaufen!";
+                IsFeedbackVisible = true;
+                await Task.Delay(1000);
+                IsFeedbackVisible = false;
+                await LoadNextQuestionAsync();
+            }
+        }
+
         /// <summary>
         /// Loads answer options for the current question.
         /// If none are found, shows an error message.
@@ -535,6 +651,23 @@ namespace NeoCardium.ViewModels
             OnPropertyChanged(nameof(AnswerButtonText));
         }
 
+        private void LoadTrueFalseAnswers()
+        {
+            AnswerOptions = new ObservableCollection<FlashcardAnswer>
+            {
+                new FlashcardAnswer
+                {
+                    AnswerText = "Wahr",
+                    IsCorrect = CurrentQuestion.Answer.Trim().ToLower() == "true"
+                },
+                new FlashcardAnswer
+                {
+                    AnswerText = "Falsch",
+                    IsCorrect = CurrentQuestion.Answer.Trim().ToLower() == "false"
+                }
+            };
+        }
+
         /// <summary>
         /// Displays the final statistics overlay.
         /// </summary>
@@ -543,6 +676,7 @@ namespace NeoCardium.ViewModels
             try
             {
                 Debug.WriteLine("[ShowFinalStatisticsAsync] => Setting IsSessionActive=false, IsFinalStatisticsVisible=true");
+                StopTimer();
                 IsSessionActive = false;
                 IsFinalStatisticsVisible = true;
                 OnPropertyChanged(nameof(IsSessionActive));
@@ -607,10 +741,27 @@ namespace NeoCardium.ViewModels
 
         public string AnswerButtonText => IsAnswerRevealed ? "Nächste Frage" : "Antwort anzeigen";
 
+        // Text entered by the user in TypedAnswer mode
+        public string TypedUserAnswer
+        {
+            get => _typedUserAnswer;
+            set => SetProperty(ref _typedUserAnswer, value);
+        }
+
+        // Remaining time for Timed mode
+        public int TimeLeft
+        {
+            get => _timeLeft;
+            set => SetProperty(ref _timeLeft, value);
+        }
+
         public ObservableCollection<PracticeModeOption> AvailableModes { get; } = new ObservableCollection<PracticeModeOption>
         {
             new PracticeModeOption { Mode = PracticeMode.MultipleChoice, ModeName = "Multiple-Choice" },
-            new PracticeModeOption { Mode = PracticeMode.Flashcard, ModeName = "Karteikarten-Modus" }
+            new PracticeModeOption { Mode = PracticeMode.Flashcard, ModeName = "Karteikarten-Modus" },
+            new PracticeModeOption { Mode = PracticeMode.TypedAnswer, ModeName = "Freitext" },
+            new PracticeModeOption { Mode = PracticeMode.Timed, ModeName = "Zeitmodus" },
+            new PracticeModeOption { Mode = PracticeMode.TrueFalse, ModeName = "Wahr/Falsch" }
         };
 
         public PracticeMode SelectedMode
