@@ -4,12 +4,15 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using NeoCardium.Helpers;
 using NeoCardium.Database;
+using Windows.Storage;
 
 namespace NeoCardium
 {
     public partial class App : Application
     {
         public static MainWindow? _mainWindow { get; private set; }
+        private const string FirstLaunchKey = "FirstLaunchShown";
+        
         private static readonly ResourceDictionary _pastelDictionary = new()
         {
             Source = new Uri("ms-appx:///Themes/Pastel.xaml")
@@ -68,6 +71,19 @@ namespace NeoCardium
             {
                 _mainWindow = new MainWindow();
                 _mainWindow.Activate();
+            }
+
+            var localSettings = ApplicationData.Current.LocalSettings;
+            bool isFirstLaunch = false;
+            if (!localSettings.Values.ContainsKey(FirstLaunchKey))
+            {
+                isFirstLaunch = true;
+                localSettings.Values[FirstLaunchKey] = true;
+            }
+
+            if (isFirstLaunch)
+            {
+                _mainWindow.NavigateToTutorial();
             }
         }
     }
