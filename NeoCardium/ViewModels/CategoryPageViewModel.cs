@@ -33,6 +33,21 @@ namespace NeoCardium.ViewModels
 
         public ObservableCollection<Category> Categories { get; } = new ObservableCollection<Category>();
 
+        private List<Category> _allCategories = new();
+
+        private string _searchText = string.Empty;
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                if (SetProperty(ref _searchText, value, nameof(SearchText)))
+                {
+                    ApplyFilter();
+                }
+            }
+        }
+
         public ICommand DeleteCategoryCommand { get; }
         public ICommand DeleteSelectedCategoriesCommand { get; }
         public ICommand ExportCategoriesCommand { get; }
@@ -50,12 +65,22 @@ namespace NeoCardium.ViewModels
         public async Task LoadCategoriesAsync()
         {
             var cats = DatabaseHelper.Instance.GetCategories();
+            _allCategories = cats.ToList();
+            ApplyFilter();
+            await Task.CompletedTask;
+        }
+
+        private void ApplyFilter()
+        {
+            var filtered = string.IsNullOrWhiteSpace(SearchText)
+                ? _allCategories
+                : _allCategories.Where(c => c.CategoryName.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+
             Categories.Clear();
-            foreach (var cat in cats)
+            foreach (var cat in filtered)
             {
                 Categories.Add(cat);
             }
-            await Task.CompletedTask;
         }
 
         public void AddCategory(string categoryName)

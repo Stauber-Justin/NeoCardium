@@ -27,6 +27,7 @@
     <Grid Padding="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -36,7 +37,12 @@
                    FontWeight="Bold"
                    Margin="0,0,0,10"/>
 
-        <ScrollViewer Grid.Row="1">
+        <TextBox x:Uid="SearchBox"
+                 Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 Grid.Row="1"
+                 Margin="0,0,0,10"/>
+
+        <ScrollViewer Grid.Row="2">
             <ListView x:Name="CategoryListView"
                       SelectionMode="Extended"
                       IsItemClickEnabled="True"
@@ -53,7 +59,7 @@
         </ScrollViewer>
 
         <!-- Bottom row with two buttons: "Neue Kategorie erstellen" and "Import" -->
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>

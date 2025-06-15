@@ -14,6 +14,21 @@ namespace NeoCardium.ViewModels
     {
         public ObservableCollection<Flashcard> Flashcards { get; } = new ObservableCollection<Flashcard>();
 
+        private List<Flashcard> _allFlashcards = new();
+
+        private string _searchText = string.Empty;
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                if (SetProperty(ref _searchText, value))
+                {
+                    ApplyFilter();
+                }
+            }
+        }
+
         private int _selectedCategoryId;
         public int SelectedCategoryId
         {
@@ -34,12 +49,22 @@ namespace NeoCardium.ViewModels
         {
             SelectedCategoryId = categoryId;
             var flashcards = DatabaseHelper.Instance.GetFlashcardsByCategory(categoryId);
+            _allFlashcards = flashcards.ToList();
+            ApplyFilter();
+            await Task.CompletedTask;
+        }
+
+        private void ApplyFilter()
+        {
+            var filtered = string.IsNullOrWhiteSpace(SearchText)
+                ? _allFlashcards
+                : _allFlashcards.Where(f => f.Question.Contains(SearchText, System.StringComparison.OrdinalIgnoreCase));
+
             Flashcards.Clear();
-            foreach (var card in flashcards)
+            foreach (var card in filtered)
             {
                 Flashcards.Add(card);
             }
-            await Task.CompletedTask;
         }
 
         private async Task DeleteFlashcardAsync(Flashcard? flashcard)

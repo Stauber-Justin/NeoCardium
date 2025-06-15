@@ -57,4 +57,7 @@
   <data name="CategoryDialog_SaveError.Text" xml:space="preserve">
     <value>Unerwarteter Fehler beim Speichern.</value>
   </data>
+  <data name="SearchBox.PlaceholderText" xml:space="preserve">
+    <value>Suchen</value>
+  </data>
 </root>

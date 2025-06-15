@@ -27,9 +27,8 @@
     -->
     <Grid Padding="10">
         <Grid.RowDefinitions>
-            <!-- The first two rows auto-size to their content -->
             <RowDefinition Height="Auto"/>
-            <!-- The last row takes the remaining space (star layout) -->
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -59,10 +58,15 @@
                     Click="BatchCreateButton_Click"/>
         </StackPanel>
 
-        <!-- Row 1: The ListView. 
+        <TextBox x:Uid="SearchBox"
+                 Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 Grid.Row="1"
+                 Margin="0,0,0,10"/>
+
+        <!-- Row 2: The ListView.
              Because it's in a star row, it will scroll automatically when items exceed the available space. -->
-        <ListView x:Name="FlashcardsListView" 
-                  ItemsSource="{x:Bind ViewModel.Flashcards}" 
+        <ListView x:Name="FlashcardsListView"
+                  ItemsSource="{x:Bind ViewModel.Flashcards}"
                   SelectionMode="Extended"
                   IsRightTapEnabled="True"
                   RightTapped="FlashcardsListView_RightTapped"
