@@ -108,9 +108,6 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <PRIResource Include="Strings\**\*.resw" />
-  </ItemGroup>
-  <ItemGroup>
     <Page Update="Views\CategoryPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
