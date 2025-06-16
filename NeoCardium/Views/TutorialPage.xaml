@@ -8,8 +8,25 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <Grid>
-        <TeachingTip x:Name="TipCreate" Title="{x:Uid TutorialPage_Step1.Title}" Subtitle="{x:Uid TutorialPage_Step1.Subtitle}" IsOpen="False" Closed="TipCreate_Closed" />
-        <TeachingTip x:Name="TipPractice" Title="{x:Uid TutorialPage_Step2.Title}" Subtitle="{x:Uid TutorialPage_Step2.Subtitle}" IsOpen="False" Closed="TipPractice_Closed" />
-        <Button x:Name="FinishButton" Content="{x:Uid TutorialPage_FinishButton}" Visibility="Collapsed" Click="FinishButton_Click" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,40"/>
+        <TeachingTip x:Uid="TutorialPage_Step1"
+                     x:Name="TipCreate"
+                     Title="Create Categories"
+                     Subtitle="Add categories to organize your flashcards."
+                     IsOpen="False"
+                     Closed="TipCreate_Closed" />
+        <TeachingTip x:Uid="TutorialPage_Step2"
+                     x:Name="TipPractice"
+                     Title="Start Practice"
+                     Subtitle="Select a category and begin practicing."
+                     IsOpen="False"
+                     Closed="TipPractice_Closed" />
+        <Button x:Uid="TutorialPage_FinishButton"
+                x:Name="FinishButton"
+                Content="Get Started"
+                Visibility="Collapsed"
+                Click="FinishButton_Click"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom"
+                Margin="0,0,0,40"/>
     </Grid>
 </Page>
