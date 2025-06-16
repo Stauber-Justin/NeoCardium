@@ -7,14 +7,13 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:charting="using:CommunityToolkit.WinUI.UI.Controls"
     mc:Ignorable="d"
-    xmlns:vm="using:NeoCardium.ViewModels"
-    x:DataType="vm:StatsPageViewModel">
+    xmlns:vm="using:NeoCardium.ViewModels">
 
     <StackPanel Padding="20" Spacing="20">
         <TextBlock Text="Learning History" FontSize="24" FontWeight="Bold"/>
-        <charting:Chart x:Name="HistoryChart" Height="300" ItemsSource="{x:Bind DailyStats}">
-            <charting:LineSeries ItemsSource="{x:Bind DailyStats}" IndependentValuePath="Date" DependentValuePath="Correct" Title="Correct"/>
-            <charting:LineSeries ItemsSource="{x:Bind DailyStats}" IndependentValuePath="Date" DependentValuePath="Incorrect" Title="Incorrect"/>
+        <charting:Chart x:Name="HistoryChart" Height="300" ItemsSource="{x:Bind ViewModel.DailyStats}">
+            <charting:LineSeries ItemsSource="{x:Bind ViewModel.DailyStats}" IndependentValuePath="Date" DependentValuePath="Correct" Title="Correct"/>
+            <charting:LineSeries ItemsSource="{x:Bind ViewModel.DailyStats}" IndependentValuePath="Date" DependentValuePath="Incorrect" Title="Incorrect"/>
         </charting:Chart>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
             <Button Content="Reset" Command="{x:Bind ViewModel.ResetStatsCommand}"/>
